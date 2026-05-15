@@ -10,321 +10,206 @@
     :root {
       --black:  #0a0a0a;
       --gray-1: #1a1a1a;
-      --gray-2: #333333;
-      --gray-3: #666666;
-      --gray-4: #999999;
-      --gray-5: #cccccc;
+      --gray-2: #2e2e2e;
+      --gray-3: #555555;
+      --gray-4: #888888;
+      --gray-5: #bbbbbb;
       --gray-6: #e8e8e8;
+      --gray-7: #f4f4f4;
       --white:  #ffffff;
-      --accent: #0a0a0a;
-      --radius: 2px;
+      --radius: 3px;
       --font: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
     }
 
     html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--white); color: var(--black); line-height: 1.7; font-size: 15px; }
 
-    body {
-      font-family: var(--font);
-      background: var(--white);
-      color: var(--black);
-      line-height: 1.7;
-      font-size: 15px;
-    }
-
-    /* ── 레이아웃 ── */
-    .container { max-width: 900px; margin: 0 auto; padding: 0 2rem; }
+    .container { max-width: 920px; margin: 0 auto; padding: 0 2rem; }
 
     /* ── 헤더 ── */
-    header {
-      border-bottom: 1.5px solid var(--black);
-      padding: 3.5rem 0 2.5rem;
-    }
-    .header-inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      gap: 2rem;
-    }
-    .logo {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--gray-3);
-    }
-    h1 {
-      font-size: clamp(2rem, 5vw, 3.2rem);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-top: 0.5rem;
-    }
-    .tagline {
-      font-size: 1rem;
-      color: var(--gray-3);
-      margin-top: 0.75rem;
-      max-width: 520px;
-    }
-    .badge-row {
-      display: flex;
-      gap: 0.5rem;
-      margin-top: 1.5rem;
-      flex-wrap: wrap;
-    }
+    header { border-bottom: 2px solid var(--black); padding: 4rem 0 3rem; }
+    .logo  { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.22em; text-transform: uppercase; color: var(--gray-4); margin-bottom: 1rem; }
+    h1     { font-size: clamp(2.2rem, 5vw, 3.4rem); font-weight: 800; letter-spacing: -0.04em; line-height: 1.08; }
+    .tagline-ko { font-size: 1rem; color: var(--gray-2); margin-top: 0.9rem; max-width: 560px; line-height: 1.6; }
+    .tagline-en { font-size: 0.82rem; color: var(--gray-4); margin-top: 0.35rem; max-width: 560px; line-height: 1.55; }
+
+    .badge-row { display: flex; gap: 0.45rem; margin-top: 1.75rem; flex-wrap: wrap; }
     .badge {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.75rem;
-      border: 1px solid var(--black);
-      border-radius: var(--radius);
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+      padding: 0.28rem 0.7rem; border: 1.5px solid var(--black); border-radius: var(--radius);
     }
     .badge-filled { background: var(--black); color: var(--white); }
 
     /* ── 네비 ── */
-    nav {
-      border-bottom: 1px solid var(--gray-6);
-      position: sticky;
-      top: 0;
-      background: rgba(255,255,255,0.96);
-      backdrop-filter: blur(8px);
-      z-index: 100;
-    }
-    nav ul {
-      display: flex;
-      list-style: none;
-      gap: 0;
-    }
+    nav { border-bottom: 1px solid var(--gray-6); position: sticky; top: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); z-index: 100; }
+    nav ul { display: flex; list-style: none; }
     nav a {
-      display: block;
-      padding: 1rem 1.25rem;
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--gray-3);
-      text-decoration: none;
-      border-bottom: 2px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
+      display: block; padding: 0.9rem 1.1rem;
+      font-size: 0.7rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--gray-4); text-decoration: none;
+      border-bottom: 2px solid transparent; transition: color 0.15s, border-color 0.15s;
     }
     nav a:hover { color: var(--black); border-bottom-color: var(--black); }
 
     /* ── 섹션 ── */
-    section { padding: 4rem 0; border-bottom: 1px solid var(--gray-6); }
-    section:last-child { border-bottom: none; }
+    section { padding: 4.5rem 0; border-bottom: 1px solid var(--gray-6); }
+    section:last-of-type { border-bottom: none; }
 
-    .section-label {
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--gray-4);
-      margin-bottom: 1.5rem;
+    .sec-label {
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 0.22em;
+      text-transform: uppercase; color: var(--gray-4); margin-bottom: 1.5rem;
+      display: flex; align-items: center; gap: 0.75rem;
     }
-    h2 {
-      font-size: 1.6rem;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      margin-bottom: 1rem;
-    }
-    h3 {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.01em;
-    }
-    p { color: var(--gray-2); margin-bottom: 1rem; }
-    p:last-child { margin-bottom: 0; }
+    .sec-label::after { content: ''; flex: 1; height: 1px; background: var(--gray-6); }
 
-    /* ── 카드 그리드 ── */
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    h2 { font-size: 1.65rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.4rem; }
+    .h2-en { font-size: 0.82rem; color: var(--gray-4); margin-bottom: 1.25rem; }
+    h3 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.35rem; }
+    .h3-en { font-size: 0.75rem; color: var(--gray-4); margin-bottom: 0.75rem; }
+
+    .txt-ko { color: var(--gray-2); margin-bottom: 0.3rem; font-size: 0.93rem; }
+    .txt-en { color: var(--gray-4); font-size: 0.8rem; margin-bottom: 1rem; line-height: 1.55; }
+
+    /* ── 그리드 ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
-    @media (max-width: 640px) {
-      .grid-2, .grid-3 { grid-template-columns: 1fr; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+    @media (max-width: 680px) {
+      .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+      nav ul { overflow-x: auto; }
     }
 
-    .card {
-      border: 1px solid var(--gray-6);
-      padding: 1.5rem;
-      border-radius: var(--radius);
-    }
-    .card-dark {
-      background: var(--black);
-      color: var(--white);
-      border-color: var(--black);
-    }
-    .card-dark p, .card-dark h3 { color: var(--gray-5); }
+    /* ── 카드 ── */
+    .card { border: 1px solid var(--gray-6); padding: 1.5rem; border-radius: var(--radius); }
+    .card-dark { background: var(--black); color: var(--white); border-color: var(--black); }
+    .card-dark .txt-ko { color: var(--gray-5); }
+    .card-dark .txt-en { color: var(--gray-4); }
     .card-dark h3 { color: var(--white); }
-    .card-num {
-      font-size: 2rem;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      margin-bottom: 0.25rem;
-    }
-    .card-num-sm {
-      font-size: 0.65rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--gray-4);
-    }
+    .stat-num { font-size: 2.2rem; font-weight: 800; letter-spacing: -0.05em; line-height: 1; margin-bottom: 0.2rem; }
+    .stat-sub { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-4); margin-bottom: 0.6rem; }
 
-    /* ── 파일 트리 ── */
+    /* ── 파일트리 ── */
     .filetree {
-      font-family: var(--mono);
-      font-size: 0.82rem;
-      background: var(--black);
-      color: #e0e0e0;
-      padding: 1.75rem;
-      border-radius: var(--radius);
-      line-height: 1.9;
-      overflow-x: auto;
+      font-family: var(--mono); font-size: 0.8rem;
+      background: var(--black); color: #d0d0d0;
+      padding: 1.75rem 2rem; border-radius: var(--radius);
+      line-height: 2; overflow-x: auto;
     }
-    .filetree .dir  { color: #ffffff; font-weight: 600; }
-    .filetree .file { color: #aaaaaa; }
-    .filetree .note { color: #555555; }
+    .ft-dir  { color: #ffffff; font-weight: 700; }
+    .ft-file { color: #aaaaaa; }
+    .ft-note { color: #484848; }
+    .ft-new  { color: #888888; font-weight: 600; }
 
-    /* ── 코드 블록 ── */
-    pre, code {
-      font-family: var(--mono);
-      font-size: 0.82rem;
-    }
+    /* ── 코드 ── */
     pre {
-      background: var(--black);
-      color: #e0e0e0;
-      padding: 1.25rem 1.5rem;
-      border-radius: var(--radius);
-      overflow-x: auto;
-      margin: 1rem 0;
-      line-height: 1.8;
+      font-family: var(--mono); font-size: 0.8rem;
+      background: var(--black); color: #d0d0d0;
+      padding: 1.25rem 1.5rem; border-radius: var(--radius);
+      overflow-x: auto; line-height: 1.85; margin: 1rem 0;
     }
     code {
-      background: var(--gray-6);
-      padding: 0.15em 0.45em;
-      border-radius: 2px;
-      font-size: 0.8rem;
+      font-family: var(--mono); font-size: 0.78rem;
+      background: var(--gray-7); padding: 0.12em 0.4em; border-radius: 2px;
     }
 
     /* ── 테이블 ── */
-    .table-wrap { overflow-x: auto; }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.85rem;
-    }
+    .tbl-wrap { overflow-x: auto; margin: 1.25rem 0; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
     th {
-      text-align: left;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--gray-4);
-      padding: 0.75rem 1rem;
-      border-bottom: 1.5px solid var(--black);
+      text-align: left; font-size: 0.62rem; font-weight: 700;
+      letter-spacing: 0.12em; text-transform: uppercase; color: var(--gray-4);
+      padding: 0.7rem 1rem; border-bottom: 2px solid var(--black);
+      white-space: nowrap;
     }
-    td {
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--gray-6);
-      color: var(--gray-2);
-      vertical-align: top;
-    }
+    td { padding: 0.82rem 1rem; border-bottom: 1px solid var(--gray-6); color: var(--gray-2); vertical-align: top; }
     tr:last-child td { border-bottom: none; }
-    td:first-child { font-weight: 600; color: var(--black); font-family: var(--mono); font-size: 0.8rem; }
+    tr:hover td { background: var(--gray-7); }
+    td.mono { font-family: var(--mono); font-size: 0.78rem; font-weight: 700; color: var(--black); }
 
     /* ── 플로우 ── */
-    .flow {
-      display: flex;
-      align-items: center;
-      gap: 0;
-      flex-wrap: wrap;
-      margin: 1.5rem 0;
-    }
+    .flow { display: flex; align-items: stretch; margin: 2rem 0; gap: 0; flex-wrap: wrap; }
     .flow-step {
-      flex: 1;
-      min-width: 120px;
-      text-align: center;
-      padding: 1.25rem 1rem;
-      border: 1px solid var(--gray-6);
+      flex: 1; min-width: 100px; text-align: center;
+      padding: 1.4rem 0.75rem; border: 1px solid var(--gray-6);
+      border-right: none;
     }
+    .flow-step:last-child { border-right: 1px solid var(--gray-6); border-radius: 0 var(--radius) var(--radius) 0; }
     .flow-step:first-child { border-radius: var(--radius) 0 0 var(--radius); }
-    .flow-step:last-child  { border-radius: 0 var(--radius) var(--radius) 0; }
-    .flow-arrow {
-      font-size: 1rem;
-      color: var(--gray-4);
-      padding: 0 0.25rem;
-      flex-shrink: 0;
-    }
-    .flow-icon { font-size: 1.4rem; margin-bottom: 0.4rem; }
-    .flow-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
-    .flow-desc  { font-size: 0.72rem; color: var(--gray-4); margin-top: 0.2rem; }
+    .flow-icon  { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    .flow-ko    { font-size: 0.72rem; font-weight: 700; }
+    .flow-en    { font-size: 0.62rem; color: var(--gray-4); margin-top: 0.15rem; }
+    .flow-arrow { display: flex; align-items: center; color: var(--gray-5); font-size: 1rem; padding: 0 0.1rem; }
 
     /* ── 리스트 ── */
-    ul.styled { padding-left: 0; list-style: none; }
-    ul.styled li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid var(--gray-6);
-      color: var(--gray-2);
-      font-size: 0.9rem;
-      display: flex;
-      gap: 0.75rem;
+    ul.clean { list-style: none; padding: 0; }
+    ul.clean li {
+      display: flex; flex-direction: column; gap: 0.1rem;
+      padding: 0.65rem 0; border-bottom: 1px solid var(--gray-6); font-size: 0.88rem;
     }
-    ul.styled li::before { content: "—"; color: var(--gray-4); flex-shrink: 0; }
-    ul.styled li:last-child { border-bottom: none; }
+    ul.clean li:last-child { border-bottom: none; }
+    ul.clean .li-ko { color: var(--gray-2); }
+    ul.clean .li-en { color: var(--gray-4); font-size: 0.76rem; }
 
-    /* ── 경고 박스 ── */
+    /* ── 알림 박스 ── */
     .notice {
-      border-left: 3px solid var(--black);
-      padding: 1rem 1.25rem;
-      background: var(--gray-6);
-      font-size: 0.85rem;
-      color: var(--gray-2);
-      border-radius: 0 var(--radius) var(--radius) 0;
-      margin: 1rem 0;
+      border-left: 3px solid var(--black); padding: 0.9rem 1.2rem;
+      background: var(--gray-7); border-radius: 0 var(--radius) var(--radius) 0;
+      margin: 1.25rem 0;
+    }
+    .notice .txt-ko { font-size: 0.86rem; }
+    .notice .txt-en { font-size: 0.76rem; margin-bottom: 0; }
+
+    /* ── 단계 번호 ── */
+    .step-list { counter-reset: steps; list-style: none; padding: 0; margin: 1rem 0; }
+    .step-list li {
+      counter-increment: steps; display: flex; gap: 1.25rem;
+      padding: 1.1rem 0; border-bottom: 1px solid var(--gray-6);
+    }
+    .step-list li:last-child { border-bottom: none; }
+    .step-list li::before {
+      content: counter(steps, decimal-leading-zero);
+      font-family: var(--mono); font-size: 0.75rem; font-weight: 700;
+      color: var(--gray-4); flex-shrink: 0; padding-top: 0.1rem;
     }
 
     /* ── 푸터 ── */
     footer {
-      border-top: 1.5px solid var(--black);
-      padding: 2.5rem 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.75rem;
-      color: var(--gray-4);
-      flex-wrap: wrap;
-      gap: 1rem;
+      border-top: 2px solid var(--black); padding: 2.5rem 0;
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.75rem; color: var(--gray-4); flex-wrap: wrap; gap: 1rem;
     }
-    footer a { color: var(--black); text-decoration: none; font-weight: 600; }
+    footer a { color: var(--black); text-decoration: none; font-weight: 700; }
+    footer a:hover { text-decoration: underline; }
   </style>
 </head>
 <body>
 
-<!-- ── HEADER ── -->
+<!-- ════════════════════ HEADER ════════════════════ -->
 <div class="container">
-  <header>
-    <div class="logo">Trading Prediction</div>
-    <div class="header-inner">
-      <div>
-        <h1>Portfolio<br>Analyzer</h1>
-        <p class="tagline">
-          노션 투자 포트폴리오를 기반으로 12개 종목을 매일 자동 분석하고,
-          Prophet + XGBoost 앙상블로 1·3·6·12개월 후 가격을 예측합니다.
-        </p>
-        <div class="badge-row">
-          <span class="badge badge-filled">Python 3.11</span>
-          <span class="badge">Prophet</span>
-          <span class="badge">XGBoost</span>
-          <span class="badge">Notion API</span>
-          <span class="badge">배당 성장 전략</span>
-        </div>
-      </div>
-    </div>
-  </header>
+<header>
+  <div class="logo">Trading Prediction &nbsp;/&nbsp; Portfolio Analyzer</div>
+  <h1>Portfolio<br>Analyzer</h1>
+  <p class="tagline-ko">
+    노션 배당 성장 포트폴리오를 기반으로 12개 종목을 매일 자동 분석하고,
+    Prophet + XGBoost 앙상블로 1·3·6·12개월 후 가격을 예측합니다.
+  </p>
+  <p class="tagline-en">
+    Automatically analyzes 12 dividend growth portfolio tickers daily and predicts
+    future prices using a Prophet + XGBoost ensemble, then saves reports to Notion.
+  </p>
+  <div class="badge-row">
+    <span class="badge badge-filled">Python 3.11</span>
+    <span class="badge">Prophet</span>
+    <span class="badge">XGBoost</span>
+    <span class="badge">Notion API</span>
+    <span class="badge">yfinance</span>
+    <span class="badge">배당 성장 전략</span>
+  </div>
+</header>
 </div>
 
-<!-- ── NAV ── -->
+<!-- ════════════════════ NAV ════════════════════ -->
 <nav>
   <div class="container">
     <ul>
@@ -332,309 +217,375 @@
       <li><a href="#portfolio">포트폴리오</a></li>
       <li><a href="#architecture">구조</a></li>
       <li><a href="#prediction">예측 모델</a></li>
-      <li><a href="#setup">설치 및 실행</a></li>
+      <li><a href="#setup">설치</a></li>
       <li><a href="#automation">자동화</a></li>
+      <li><a href="#risk">리스크</a></li>
     </ul>
   </div>
 </nav>
 
-<!-- ── OVERVIEW ── -->
+<!-- ════════════════════ 01 OVERVIEW ════════════════════ -->
 <section id="overview">
-  <div class="container">
-    <div class="section-label">01 — Overview</div>
-    <h2>무엇을 하는 프로그램인가</h2>
-    <p>
-      배당 성장 전략 투자자를 위한 자동화 분석 도구입니다.
-      노션에 정리된 투자 포트폴리오를 기반으로 매일 오전 7시에 실행되어
-      12개 종목의 현재 상태를 분석하고 미래 가격을 예측한 뒤,
-      결과를 노션 리포트 페이지로 자동 저장하고 이메일로 핵심 신호를 발송합니다.
-    </p>
+<div class="container">
+  <div class="sec-label">01 — 개요 / Overview</div>
+  <h2>무엇을 하는 프로그램인가</h2>
+  <p class="h2-en">What does this program do?</p>
+  <p class="txt-ko">
+    배당 성장 전략 투자자를 위한 자동화 분석 도구입니다.
+    노션에 정리된 포트폴리오를 기반으로 매일 오전 7시에 실행되어 12개 종목의 현재 상태를 분석하고
+    미래 가격을 예측한 뒤, 결과를 노션 리포트로 자동 저장하고 이메일로 핵심 신호를 발송합니다.
+  </p>
+  <p class="txt-en">
+    An automated analysis tool for dividend growth strategy investors. Runs daily at 07:00 KST,
+    analyzes 12 portfolio tickers, predicts future prices, saves a Notion report, and sends a lightweight email alert.
+  </p>
 
-    <div class="flow" style="margin-top:2rem;">
-      <div class="flow-step">
-        <div class="flow-icon">📋</div>
-        <div class="flow-label">Notion</div>
-        <div class="flow-desc">포트폴리오 구성</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="flow-icon">📥</div>
-        <div class="flow-label">yfinance</div>
-        <div class="flow-desc">3년 가격 데이터</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="flow-icon">🔬</div>
-        <div class="flow-label">Analyzer</div>
-        <div class="flow-desc">현황 분석</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="flow-icon">🤖</div>
-        <div class="flow-label">Predictor</div>
-        <div class="flow-desc">가격 예측</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="flow-icon">📊</div>
-        <div class="flow-label">Notion</div>
-        <div class="flow-desc">리포트 저장</div>
-      </div>
-      <div class="flow-arrow">→</div>
-      <div class="flow-step">
-        <div class="flow-icon">📧</div>
-        <div class="flow-label">Gmail</div>
-        <div class="flow-desc">신호 알림</div>
-      </div>
+  <!-- 플로우 -->
+  <div class="flow">
+    <div class="flow-step"><div class="flow-icon">📋</div><div class="flow-ko">포트폴리오</div><div class="flow-en">Portfolio Config</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">📥</div><div class="flow-ko">데이터 수집</div><div class="flow-en">yfinance 3Y</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">🔬</div><div class="flow-ko">현황 분석</div><div class="flow-en">Analyzer</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">🤖</div><div class="flow-ko">가격 예측</div><div class="flow-en">XGBoost + Prophet</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">📊</div><div class="flow-ko">노션 저장</div><div class="flow-en">Notion Report</div></div>
+    <div class="flow-arrow">→</div>
+    <div class="flow-step"><div class="flow-icon">📧</div><div class="flow-ko">이메일 알림</div><div class="flow-en">Gmail Alert</div></div>
+  </div>
+
+  <!-- 통계 카드 -->
+  <div class="grid-4" style="margin-top:1.5rem;">
+    <div class="card card-dark">
+      <div class="stat-sub">분석 종목 / Tickers</div>
+      <div class="stat-num">12</div>
+      <p class="txt-en">ETF 5 + 배당주 6 + 보유 1</p>
     </div>
-
-    <div class="grid-3" style="margin-top:2rem;">
-      <div class="card card-dark">
-        <div class="card-num-sm">분석 종목</div>
-        <div class="card-num">12</div>
-        <p>ETF 5종 + 개별 배당주 6종 + 실제 보유 1종</p>
-      </div>
-      <div class="card card-dark">
-        <div class="card-num-sm">예측 구간</div>
-        <div class="card-num">4</div>
-        <p>1개월 · 3개월 · 6개월 · 12개월</p>
-      </div>
-      <div class="card card-dark">
-        <div class="card-num-sm">자동 실행</div>
-        <div class="card-num">매일</div>
-        <p>오전 7:00 KST (미국 장 마감 2시간 후)</p>
-      </div>
+    <div class="card card-dark">
+      <div class="stat-sub">예측 구간 / Horizons</div>
+      <div class="stat-num">4</div>
+      <p class="txt-en">1M · 3M · 6M · 12M</p>
+    </div>
+    <div class="card card-dark">
+      <div class="stat-sub">신뢰 구간 / Confidence</div>
+      <div class="stat-num">80%</div>
+      <p class="txt-en">분위수 회귀 / Quantile</p>
+    </div>
+    <div class="card card-dark">
+      <div class="stat-sub">자동 실행 / Schedule</div>
+      <div class="stat-num">매일</div>
+      <p class="txt-en">오전 7:00 KST</p>
     </div>
   </div>
+</div>
 </section>
 
-<!-- ── PORTFOLIO ── -->
+<!-- ════════════════════ 02 PORTFOLIO ════════════════════ -->
 <section id="portfolio">
-  <div class="container">
-    <div class="section-label">02 — Portfolio</div>
-    <h2>분석 대상 종목</h2>
-    <p>노션 투자 포트폴리오(2026년 5월 기준) 구성을 그대로 반영합니다.</p>
+<div class="container">
+  <div class="sec-label">02 — 포트폴리오 / Portfolio</div>
+  <h2>분석 대상 종목</h2>
+  <p class="h2-en">Tickers under analysis — based on Notion portfolio (May 2026)</p>
+  <p class="txt-ko">노션 투자 포트폴리오 페이지 기준 구성입니다. <code>src/portfolio_config.py</code>에서 수정할 수 있습니다.</p>
+  <p class="txt-en">Reflects the Notion portfolio page. Editable in <code>src/portfolio_config.py</code>.</p>
 
-    <div class="table-wrap" style="margin-top:1.5rem;">
-      <table>
-        <thead>
-          <tr>
-            <th>티커</th>
-            <th>종목명</th>
-            <th>카테고리</th>
-            <th>비중</th>
-            <th>배당 주기</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>SCHD</td><td>슈왑 미국 배당주</td><td>고배당 저성장 ETF</td><td>25%</td><td>분기</td></tr>
-          <tr><td>VIG</td><td>뱅가드 배당성장</td><td>고성장 저배당 ETF</td><td>17.5%</td><td>분기</td></tr>
-          <tr><td>DGRO</td><td>iShares 배당성장</td><td>고성장 저배당 ETF</td><td>17.5%</td><td>분기</td></tr>
-          <tr><td>VOO</td><td>뱅가드 S&amp;P500</td><td>인덱스 ETF</td><td>16%</td><td>분기</td></tr>
-          <tr><td>QQQ</td><td>인베스코 나스닥100</td><td>인덱스 ETF</td><td>4%</td><td>분기</td></tr>
-          <tr><td>SPYM</td><td>스테이트 스트리트 S&amp;P500</td><td>인덱스 ETF (실제 보유)</td><td>—</td><td>분기</td></tr>
-          <tr><td>JNJ</td><td>존슨앤존슨</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
-          <tr><td>KO</td><td>코카콜라</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
-          <tr><td>ABBV</td><td>애브비</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
-          <tr><td>JPM</td><td>JP모건</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
-          <tr><td>XOM</td><td>엑슨모빌</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
-          <tr><td>O</td><td>리얼티인컴</td><td>월 배당 (독립)</td><td>5%</td><td>월</td></tr>
-        </tbody>
-      </table>
-    </div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>티커 / Ticker</th>
+          <th>종목명 / Name</th>
+          <th>카테고리 / Category</th>
+          <th>비중 / Weight</th>
+          <th>배당 주기 / Div. Freq.</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="mono">SCHD</td><td>슈왑 미국 배당주</td><td>고배당 저성장 ETF</td><td>25%</td><td>분기</td></tr>
+        <tr><td class="mono">VIG</td><td>뱅가드 배당성장</td><td>고성장 저배당 ETF</td><td>17.5%</td><td>분기</td></tr>
+        <tr><td class="mono">DGRO</td><td>iShares 배당성장</td><td>고성장 저배당 ETF</td><td>17.5%</td><td>분기</td></tr>
+        <tr><td class="mono">VOO</td><td>뱅가드 S&amp;P500</td><td>인덱스 ETF</td><td>16%</td><td>분기</td></tr>
+        <tr><td class="mono">QQQ</td><td>인베스코 나스닥100</td><td>인덱스 ETF</td><td>4%</td><td>분기</td></tr>
+        <tr><td class="mono">SPYM</td><td>스테이트 스트리트 S&amp;P500</td><td>인덱스 ETF (실제 보유 · VOO 대체)</td><td>—</td><td>분기</td></tr>
+        <tr><td class="mono">JNJ</td><td>존슨앤존슨</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
+        <tr><td class="mono">KO</td><td>코카콜라</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
+        <tr><td class="mono">ABBV</td><td>애브비</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
+        <tr><td class="mono">JPM</td><td>JP모건</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
+        <tr><td class="mono">XOM</td><td>엑슨모빌</td><td>해외 개별 배당주</td><td>2%</td><td>분기</td></tr>
+        <tr><td class="mono">O</td><td>리얼티인컴</td><td>월 배당 (독립 카테고리)</td><td>5%</td><td>월</td></tr>
+      </tbody>
+    </table>
   </div>
+</div>
 </section>
 
-<!-- ── ARCHITECTURE ── -->
+<!-- ════════════════════ 03 ARCHITECTURE ════════════════════ -->
 <section id="architecture">
-  <div class="container">
-    <div class="section-label">03 — Architecture</div>
-    <h2>프로젝트 구조</h2>
+<div class="container">
+  <div class="sec-label">03 — 구조 / Architecture</div>
+  <h2>프로젝트 파일 구조</h2>
+  <p class="h2-en">Project file structure</p>
 
-    <div class="filetree">
-<span class="dir">Trading_Bot/</span>
-├── <span class="file">main.py</span>              <span class="note"># 실행 진입점 — 전체 파이프라인 오케스트레이션</span>
-├── <span class="file">requirements.txt</span>     <span class="note"># 의존성 패키지 (버전 고정)</span>
-├── <span class="file">.env</span>                 <span class="note"># 인증 정보 (Git 제외)</span>
-├── <span class="file">.gitignore</span>
-├── <span class="dir">src/</span>
-│   ├── <span class="file">portfolio_config.py</span>  <span class="note"># 종목 구성 · 노션 페이지 ID</span>
-│   ├── <span class="file">data_fetcher.py</span>      <span class="note"># yfinance로 3년 OHLCV 수집</span>
-│   ├── <span class="file">analyzer.py</span>          <span class="note"># 현재가 · 52주 범위 · 수익률 · RSI · MA</span>
-│   ├── <span class="file">predictor.py</span>         <span class="note"># XGBoost(1M) + Prophet(3·6·12M) 앙상블</span>
-│   ├── <span class="file">notion_writer.py</span>     <span class="note"># 노션 리포트 페이지 자동 생성</span>
-│   └── <span class="file">notifier.py</span>          <span class="note"># Gmail SMTP 경량 알림 발송</span>
-├── <span class="dir">results/</span>             <span class="note"># 차트 저장 (Git 제외)</span>
-├── <span class="dir">logs/</span>                <span class="note"># 실행 로그 (Git 제외)</span>
-└── <span class="dir">docs/</span>
-    └── <span class="file">index.html</span>           <span class="note"># 이 문서</span>
+  <div class="filetree">
+<span class="ft-dir">Trading_Bot/</span>
+├── <span class="ft-file">main.py</span>                  <span class="ft-note"># 실행 진입점 — 전체 파이프라인 오케스트레이션</span>
+├── <span class="ft-file">requirements.txt</span>         <span class="ft-note"># 의존성 패키지 (핵심 버전 고정)</span>
+├── <span class="ft-file">run_daily.bat</span>            <span class="ft-note"># Windows 작업 스케줄러 실행 스크립트</span>
+├── <span class="ft-file">.env</span>                     <span class="ft-note"># 인증 정보 — Git 제외 필수</span>
+├── <span class="ft-file">.gitignore</span>
+│
+├── <span class="ft-dir">src/</span>
+│   ├── <span class="ft-file">portfolio_config.py</span>  <span class="ft-note"># 종목 구성 · 포트폴리오 비중 · 노션 페이지 ID</span>
+│   ├── <span class="ft-file">data_fetcher.py</span>      <span class="ft-note"># yfinance로 3년 OHLCV 수집 · MultiIndex 처리</span>
+│   ├── <span class="ft-file">analyzer.py</span>          <span class="ft-note"># 현재가 · 52주 범위 · 수익률 · RSI · MA · 배당률</span>
+│   ├── <span class="ft-file">predictor.py</span>         <span class="ft-note"># XGBoost(1M) + Prophet(3·6·12M) 앙상블 예측</span>
+│   ├── <span class="ft-file">notion_writer.py</span>     <span class="ft-note"># 노션 리포트 페이지 자동 생성 · Rate Limit 처리</span>
+│   └── <span class="ft-file">notifier.py</span>          <span class="ft-note"># Gmail SMTP 경량 알림 · 오류별 안내 메시지</span>
+│
+├── <span class="ft-dir">docs/</span>
+│   └── <span class="ft-file">index.html</span>           <span class="ft-note"># 이 문서 / This document</span>
+│
+├── <span class="ft-dir">logs/</span>                    <span class="ft-note"># 실행 로그 (Git 제외)</span>
+└── <span class="ft-dir">results/</span>                 <span class="ft-note"># 생성 차트 (Git 제외)</span>
+  </div>
+
+  <div class="grid-2" style="margin-top:1.75rem;">
+    <div class="card">
+      <h3>analyzer.py</h3>
+      <p class="h3-en">Current state analysis</p>
+      <ul class="clean">
+        <li><span class="li-ko">현재가 · 52주 고가/저가 · 위치(%)</span><span class="li-en">Current price · 52-week high/low · price position</span></li>
+        <li><span class="li-ko">YTD · 1M · 3M · 6M · 1Y 과거 수익률</span><span class="li-en">Historical returns: YTD, 1M, 3M, 6M, 1Y</span></li>
+        <li><span class="li-ko">RSI 14일 · 과매수/과매도/중립 판정</span><span class="li-en">RSI(14) · overbought / oversold / neutral signal</span></li>
+        <li><span class="li-ko">MA 20/60/200 · 상승/하락/중립 추세</span><span class="li-en">MA 20/60/200 · trend signal</span></li>
+        <li><span class="li-ko">연율화 변동성 · yfinance 배당률</span><span class="li-en">Annualized volatility · dividend yield</span></li>
+      </ul>
     </div>
-
-    <div class="grid-2" style="margin-top:2rem;">
-      <div class="card">
-        <h3>analyzer.py</h3>
-        <ul class="styled">
-          <li>현재가 · 52주 고가/저가 · 위치(%)</li>
-          <li>YTD · 1M · 3M · 6M · 1Y 과거 수익률</li>
-          <li>RSI (14일) · 과매수/과매도 판정</li>
-          <li>MA 20/60/200 · 추세 신호</li>
-          <li>연율화 변동성 · 배당률</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>notion_writer.py</h3>
-        <ul class="styled">
-          <li>💼 투자 포트폴리오 하위에 페이지 자동 생성</li>
-          <li>당일 리포트 중복 시 아카이브 후 재생성</li>
-          <li>Rate Limit 대응 (0.4초 간격 청크 전송)</li>
-          <li>카테고리별 포트폴리오 요약 섹션</li>
-          <li>종목별 과거 수익률 + 예측가 상세 섹션</li>
-        </ul>
-      </div>
+    <div class="card">
+      <h3>notion_writer.py</h3>
+      <p class="h3-en">Notion report generator</p>
+      <ul class="clean">
+        <li><span class="li-ko">💼 투자 포트폴리오 하위 페이지 자동 생성</span><span class="li-en">Auto-creates sub-page under portfolio page</span></li>
+        <li><span class="li-ko">당일 중복 리포트 → 아카이브 후 재생성</span><span class="li-en">Deduplication: archives existing daily report before recreating</span></li>
+        <li><span class="li-ko">Notion Rate Limit 대응 (0.4초 간격 청크)</span><span class="li-en">Rate limit handling: 0.4s delay per chunk</span></li>
+        <li><span class="li-ko">카테고리별 포트폴리오 요약 섹션</span><span class="li-en">Portfolio summary grouped by category</span></li>
+        <li><span class="li-ko">종목별 과거 수익률 + 4구간 예측가</span><span class="li-en">Per-ticker: historical returns + 4-horizon predictions</span></li>
+      </ul>
     </div>
   </div>
+</div>
 </section>
 
-<!-- ── PREDICTION ── -->
+<!-- ════════════════════ 04 PREDICTION ════════════════════ -->
 <section id="prediction">
-  <div class="container">
-    <div class="section-label">04 — Prediction Model</div>
-    <h2>예측 모델 구성</h2>
+<div class="container">
+  <div class="sec-label">04 — 예측 모델 / Prediction Model</div>
+  <h2>앙상블 예측 구성</h2>
+  <p class="h2-en">Ensemble prediction architecture</p>
 
-    <div class="grid-2" style="margin-top:1.5rem;">
-      <div class="card card-dark">
-        <h3>단기 — 1개월 후</h3>
-        <div style="font-size:0.72rem;color:#888;margin-bottom:0.75rem;font-family:var(--mono);">XGBoost + 기술적 지표</div>
-        <p>RSI · MA 비율 · 5/20일 수익률 · 변동성을 특성으로 사용.
-        분위수 회귀(10th / 50th / 90th percentile)로 80% 예측 구간 산출.
-        지표 조합 패턴(RSI 고점 + MA 하락 등)을 비선형 학습.</p>
-      </div>
-      <div class="card card-dark">
-        <h3>중·장기 — 3 / 6 / 12개월 후</h3>
-        <div style="font-size:0.72rem;color:#888;margin-bottom:0.75rem;font-family:var(--mono);">Prophet (Meta)</div>
-        <p>트렌드 + 주간 계절성 + 연간 계절성 분해 학습.
-        changepoint_prior_scale=0.05로 안정형 자산에 적합한 보수적 변화점 설정.
-        12개월 예측에는 배당률을 반영한 총수익률(Total Return) 추가 산출.</p>
-      </div>
+  <div class="grid-2" style="margin-top:1.5rem;">
+    <div class="card card-dark">
+      <h3>단기 — 1개월 후</h3>
+      <p class="h3-en" style="color:#666;">Short-term · 1 Month · XGBoost</p>
+      <p class="txt-ko">RSI · MA 비율 · 5/20일 수익률 · 변동성을 특성으로 사용. 분위수 회귀(10th·50th·90th)로 80% 예측 구간 산출. 지표 조합 패턴을 비선형 학습해 선형회귀보다 높은 정확도.</p>
+      <p class="txt-en">Uses RSI, MA ratios, momentum and volatility as features. Quantile regression (10th/50th/90th) for 80% prediction interval. Non-linear pattern learning.</p>
     </div>
-
-    <div class="table-wrap" style="margin-top:1.5rem;">
-      <table>
-        <thead>
-          <tr>
-            <th>구간</th>
-            <th>모델</th>
-            <th>예측 구간</th>
-            <th>배당 투자 활용처</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>1개월 후</td><td>XGBoost</td><td>80% (분위수 회귀)</td><td>이번 달 DCA 매수 타이밍 참고</td></tr>
-          <tr><td>3개월 후</td><td>Prophet</td><td>80% (신뢰 구간)</td><td>다음 분기 배당 전후 포지션 점검</td></tr>
-          <tr><td>6개월 후</td><td>Prophet</td><td>80% (신뢰 구간)</td><td>반기 리밸런싱 기준 참고</td></tr>
-          <tr><td>12개월 후</td><td>Prophet + 배당</td><td>80% (신뢰 구간)</td><td>연간 자산 성장 목표 대비 점검</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="notice" style="margin-top:1.5rem;">
-      주가 예측은 참고용입니다. 단기(1개월) 예측은 노이즈가 크며, 중·장기(6·12개월)가 이 전략에서 더 실용적입니다.
+    <div class="card card-dark">
+      <h3>중·장기 — 3 / 6 / 12개월 후</h3>
+      <p class="h3-en" style="color:#666;">Mid & Long-term · Prophet (Meta)</p>
+      <p class="txt-ko">트렌드 + 주간 계절성 + 연간 계절성 분해 학습. changepoint_prior_scale=0.05로 안정형 포트폴리오에 적합한 보수적 변화점. 12개월에는 배당률 반영 총수익률 추가 산출.</p>
+      <p class="txt-en">Decomposes trend + weekly + yearly seasonality. Conservative changepoint setting (0.05) suited for stable dividend assets. 12M adds dividend-inclusive Total Return estimate.</p>
     </div>
   </div>
+
+  <div class="tbl-wrap" style="margin-top:1.5rem;">
+    <table>
+      <thead>
+        <tr>
+          <th>구간 / Period</th>
+          <th>모델 / Model</th>
+          <th>예측 구간 / Interval</th>
+          <th>배당 투자 활용 / Investment Use</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1개월 후 / 1M</td><td class="mono">XGBoost</td><td>80% 분위수 회귀</td><td>이번 달 DCA 매수 타이밍 참고</td></tr>
+        <tr><td>3개월 후 / 3M</td><td class="mono">Prophet</td><td>80% 신뢰 구간</td><td>다음 분기 배당 전후 포지션 점검</td></tr>
+        <tr><td>6개월 후 / 6M</td><td class="mono">Prophet</td><td>80% 신뢰 구간</td><td>반기 리밸런싱 기준 참고</td></tr>
+        <tr><td>12개월 후 / 12M</td><td class="mono">Prophet + 배당</td><td>80% 신뢰 구간</td><td>연간 자산 성장 + 총수익률 목표 점검</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="notice">
+    <p class="txt-ko">단기(1개월) 예측은 시장 노이즈로 인해 신뢰도가 낮습니다. 배당 성장 전략 특성상 <strong>6개월·12개월 예측이 실질적으로 더 유용</strong>합니다.</p>
+    <p class="txt-en">Short-term (1M) predictions carry higher uncertainty due to market noise. For dividend growth strategies, the 6M and 12M forecasts are more actionable.</p>
+  </div>
+</div>
 </section>
 
-<!-- ── SETUP ── -->
+<!-- ════════════════════ 05 SETUP ════════════════════ -->
 <section id="setup">
-  <div class="container">
-    <div class="section-label">05 — Setup</div>
-    <h2>설치 및 실행</h2>
+<div class="container">
+  <div class="sec-label">05 — 설치 및 실행 / Setup & Usage</div>
+  <h2>시작하기</h2>
+  <p class="h2-en">Getting started</p>
 
-    <h3 style="margin-top:1.5rem;">1. 의존성 설치</h3>
-    <pre>pip install -r requirements.txt</pre>
-
-    <h3 style="margin-top:1.5rem;">2. 환경변수 설정 (.env)</h3>
-    <pre>EMAIL_ADDRESS=your_email@gmail.com
-EMAIL_PASSWORD=your_google_app_password
+  <ol class="step-list">
+    <li>
+      <div>
+        <h3>의존성 설치 / Install Dependencies</h3>
+        <pre>pip install -r requirements.txt</pre>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr><th>패키지</th><th>용도</th><th>버전</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">yfinance</td><td>주가 데이터 수집</td><td>1.1.0 고정</td></tr>
+              <tr><td class="mono">prophet</td><td>중·장기 가격 예측</td><td>최신</td></tr>
+              <tr><td class="mono">xgboost</td><td>단기 가격 예측</td><td>3.2.0 고정</td></tr>
+              <tr><td class="mono">scikit-learn</td><td>특성 스케일링</td><td>최신</td></tr>
+              <tr><td class="mono">notion-client</td><td>Notion API</td><td>최신</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>환경변수 설정 / Configure .env</h3>
+        <pre>EMAIL_ADDRESS=your_email@gmail.com
+EMAIL_PASSWORD=your_google_app_password   # 16자리 앱 비밀번호
 TARGET_EMAIL=your_email@gmail.com
 NOTION_TOKEN=your_notion_integration_token</pre>
-
-    <h3 style="margin-top:1.5rem;">3. Notion 통합 연결</h3>
-    <ul class="styled">
-      <li>notion.so/my-integrations 에서 Internal Integration 생성</li>
-      <li>💼 투자 포트폴리오 페이지 → ··· → Connections → 통합 선택</li>
-      <li>하위 페이지에 자동 권한 상속</li>
-    </ul>
-
-    <h3 style="margin-top:1.5rem;">4. 실행</h3>
-    <pre>cd "Trading_Bot"
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>Notion 통합 연결 / Connect Integration</h3>
+        <p class="txt-ko"><a href="https://notion.so/my-integrations" target="_blank">notion.so/my-integrations</a>에서 Internal Integration 생성 → 💼 투자 포트폴리오 페이지 → <code>···</code> → Connections → 통합 선택</p>
+        <p class="txt-en">Create an Internal Integration → open portfolio page → <code>···</code> → Connections → select integration. Child pages inherit access automatically.</p>
+      </div>
+    </li>
+    <li>
+      <div>
+        <h3>실행 / Run</h3>
+        <pre>cd "Trading_Bot"
 python main.py</pre>
-
-    <div class="table-wrap" style="margin-top:1.5rem;">
-      <table>
-        <thead>
-          <tr><th>패키지</th><th>용도</th><th>버전</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>yfinance</td><td>주가 데이터 수집</td><td>1.1.0 (고정)</td></tr>
-          <tr><td>prophet</td><td>중·장기 가격 예측</td><td>최신</td></tr>
-          <tr><td>xgboost</td><td>단기 가격 예측</td><td>3.2.0 (고정)</td></tr>
-          <tr><td>scikit-learn</td><td>특성 스케일링</td><td>최신</td></tr>
-          <tr><td>notion-client</td><td>Notion API 연동</td><td>최신</td></tr>
-          <tr><td>pandas / numpy</td><td>데이터 처리</td><td>최신</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
+      </div>
+    </li>
+  </ol>
+</div>
 </section>
 
-<!-- ── AUTOMATION ── -->
+<!-- ════════════════════ 06 AUTOMATION ════════════════════ -->
 <section id="automation">
-  <div class="container">
-    <div class="section-label">06 — Automation</div>
-    <h2>자동화 — Windows 작업 스케줄러</h2>
-    <p>매일 오전 7:00 KST에 자동 실행됩니다. 미국 장 마감(오전 5:00 KST) 이후 2시간 버퍼로 당일 종가가 완전히 반영된 후 분석합니다.</p>
+<div class="container">
+  <div class="sec-label">06 — 자동화 / Automation</div>
+  <h2>Windows 작업 스케줄러</h2>
+  <p class="h2-en">Windows Task Scheduler — daily at 07:00 KST</p>
+  <p class="txt-ko">미국 장 마감(한국 오전 5:00) 이후 2시간 버퍼로 당일 종가가 완전히 반영된 후 분석합니다. PC가 꺼져 있어도 켜지는 즉시 실행됩니다.</p>
+  <p class="txt-en">2-hour buffer after US market close (05:00 KST) ensures same-day closing prices are fully available. Runs on wake if PC was off at scheduled time.</p>
 
-    <h3 style="margin-top:1.5rem;">등록 명령 (관리자 PowerShell)</h3>
-    <pre>$action = New-ScheduledTaskAction `
-    -Execute "python.exe" `
+  <pre style="margin-top:1rem;">
+# 관리자 PowerShell에서 실행 / Run in Administrator PowerShell
+$action  = New-ScheduledTaskAction `
+    -Execute  "C:\...\Python311\python.exe" `
     -Argument "main.py" `
     -WorkingDirectory "C:\...\Trading_Bot"
 
-$trigger = New-ScheduledTaskTrigger -Daily -At 7:00AM
+$trigger  = New-ScheduledTaskTrigger -Daily -At 7:00AM
+$settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable -ExecutionTimeLimit (New-TimeSpan -Hours 2)
 
 Register-ScheduledTask -TaskName "IVV_Trading_Bot" `
-    -Action $action -Trigger $trigger -RunLevel Highest -Force</pre>
+    -Action $action -Trigger $trigger -Settings $settings -RunLevel Highest -Force</pre>
 
-    <div class="grid-2" style="margin-top:1.5rem;">
-      <div class="card">
-        <h3>결과물</h3>
-        <ul class="styled">
-          <li>노션: 날짜별 리포트 페이지 자동 생성</li>
-          <li>이메일: 과매수/과매도 신호 + 노션 링크</li>
-          <li>로컬: logs/run_log.txt 실행 기록</li>
-        </ul>
-      </div>
-      <div class="card">
-        <h3>리스크 관리</h3>
-        <ul class="styled">
-          <li>yfinance 버전 고정 — API 변경 대응</li>
-          <li>Notion Rate Limit 0.4초 간격 처리</li>
-          <li>.env Git 제외 — 인증 정보 보호</li>
-          <li>각 모듈 독립 예외 처리 — 부분 실패 허용</li>
-        </ul>
-      </div>
+  <div class="grid-2" style="margin-top:1.5rem;">
+    <div class="card">
+      <h3>결과물 / Outputs</h3>
+      <ul class="clean">
+        <li><span class="li-ko">노션: 날짜별 리포트 페이지 자동 생성</span><span class="li-en">Notion: dated report page auto-created daily</span></li>
+        <li><span class="li-ko">이메일: 과매수/과매도 신호 + 노션 링크</span><span class="li-en">Email: RSI signal summary + Notion report link</span></li>
+        <li><span class="li-ko">콘솔: 종목별 요약 테이블 출력</span><span class="li-en">Console: per-ticker summary table</span></li>
+        <li><span class="li-ko">로그: logs/run_log.txt 실행 기록 누적</span><span class="li-en">Logs: cumulative run history in logs/run_log.txt</span></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>실행 흐름 / Run Order</h3>
+      <ul class="clean">
+        <li><span class="li-ko">① 12개 종목 3년 데이터 수집 (yfinance)</span><span class="li-en">Fetch 3Y price data for 12 tickers</span></li>
+        <li><span class="li-ko">② 종목별 현황 분석 (analyzer)</span><span class="li-en">Analyze current state per ticker</span></li>
+        <li><span class="li-ko">③ 4구간 가격 예측 (XGBoost + Prophet)</span><span class="li-en">Predict 4 horizons per ticker</span></li>
+        <li><span class="li-ko">④ 노션 리포트 페이지 생성 (notion_writer)</span><span class="li-en">Create Notion report page</span></li>
+        <li><span class="li-ko">⑤ 이메일 알림 발송 (notifier)</span><span class="li-en">Send email alert</span></li>
+      </ul>
     </div>
   </div>
+</div>
 </section>
 
-<!-- ── FOOTER ── -->
+<!-- ════════════════════ 07 RISK ════════════════════ -->
+<section id="risk">
+<div class="container">
+  <div class="sec-label">07 — 리스크 관리 / Risk Management</div>
+  <h2>알려진 리스크 및 대응</h2>
+  <p class="h2-en">Known risks and mitigations</p>
+
+  <div class="tbl-wrap" style="margin-top:1.25rem;">
+    <table>
+      <thead>
+        <tr><th>구성 요소 / Component</th><th>리스크 / Risk</th><th>수준 / Level</th><th>대응 / Mitigation</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="mono">yfinance</td>
+          <td>Yahoo Finance 비공식 API — 구조 변경 시 중단 가능</td>
+          <td>⚠️ 중간</td>
+          <td>버전 고정 (1.1.0), 커뮤니티 패치 대기</td>
+        </tr>
+        <tr>
+          <td class="mono">Notion API</td>
+          <td>현재 무료, 향후 유료화 가능성</td>
+          <td>🟡 낮음</td>
+          <td>내부 통합 무료 정책 유지 중</td>
+        </tr>
+        <tr>
+          <td class="mono">Gmail SMTP</td>
+          <td>앱 비밀번호 만료 시 인증 실패</td>
+          <td>🟡 낮음</td>
+          <td>오류 메시지에 재발급 안내 포함</td>
+        </tr>
+        <tr>
+          <td class="mono">Prophet / XGBoost</td>
+          <td>오픈소스, 사실상 중단 없음</td>
+          <td>✅ 매우 낮음</td>
+          <td>업계 표준 라이브러리</td>
+        </tr>
+        <tr>
+          <td class="mono">.env</td>
+          <td>인증 정보 유출 시 계정 탈취</td>
+          <td>⚠️ 중간</td>
+          <td>.gitignore 제외, Git에 절대 커밋 불가</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="notice" style="margin-top:1.5rem;">
+    <p class="txt-ko">이 소프트웨어는 <strong>교육 및 참고 목적</strong>으로만 제작되었습니다. 특정 종목 매수를 추천하지 않으며, 실제 투자 전 반드시 직접 조사하시기 바랍니다.</p>
+    <p class="txt-en">This software is for <strong>educational and reference purposes only</strong>. It does not constitute investment advice. Always do your own research before investing.</p>
+  </div>
+</div>
+</section>
+
+<!-- ════════════════════ FOOTER ════════════════════ -->
 <div class="container">
   <footer>
-    <span>Trading Prediction — Portfolio Analyzer</span>
+    <span>Trading Prediction — Portfolio Analyzer &nbsp;·&nbsp; 배당 성장 전략 참고 도구</span>
     <span>
       <a href="https://github.com/kthgiraffe/Trading_Prediction" target="_blank">GitHub</a>
       &nbsp;·&nbsp;
-      배당 성장 전략 기반 장기 투자용 참고 도구. 투자 추천 아님.
+      Python 3.11 &nbsp;·&nbsp; Prophet + XGBoost
     </span>
   </footer>
 </div>
