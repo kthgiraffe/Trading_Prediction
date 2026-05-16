@@ -13,7 +13,7 @@ from src.data_fetcher import fetch_data
 from src.analyzer import analyze_ticker
 from src.predictor import predict_ticker
 from src.notion_writer import write_report_to_notion
-from src.notifier import send_email
+from src.notifier import send_portfolio_alert
 
 
 def _fmt_pct(v):
@@ -32,7 +32,7 @@ def main():
     print(f"{'='*54}")
     print(f"  분석 종목 : {len(PORTFOLIO)}개")
     print(f"  데이터 기간: {start_date} ~ {today} (3년)")
-    print(f"  예측 방식 : 1M 선형회귀  |  3·6·12M Prophet")
+    print(f"  예측 방식 : 1M XGBoost  |  3·6·12M Prophet")
     print(f"{'='*54}\n")
 
     results = []
@@ -94,41 +94,8 @@ def main():
     # ── 이메일 발송 (경량 알림) ───────────────────────────────
     print(f"\n{'─'*54}")
     print("  이메일 발송 중...")
-
-    # 주요 신호 추출
-    overbought = [r["analysis"]["ticker"] for r in results if r["analysis"]["rsi"] > 70]
-    oversold   = [r["analysis"]["ticker"] for r in results if r["analysis"]["rsi"] < 30]
-    ma_up      = [r["analysis"]["ticker"] for r in results if r["analysis"]["ma_signal"] == "상승"]
-
-    lines = [
-        f"오늘의 포트폴리오 분석 리포트가 준비됐습니다.",
-        f"기준일: {today} 오전 7:00",
-        "",
-        "─" * 40,
-        "📌 주요 신호",
-        f"  과매수(RSI > 70) : {', '.join(overbought) if overbought else '없음'}",
-        f"  과매도(RSI < 30) : {', '.join(oversold)   if oversold   else '없음'}",
-        f"  MA 상승 추세     : {', '.join(ma_up)       if ma_up      else '없음'}",
-        "",
-    ]
-
-    if page_url:
-        lines += [
-            "📊 상세 분석 리포트 (노션)",
-            f"  {page_url}",
-            "",
-        ]
-
-    lines += [
-        "─" * 40,
-        f"분석 종목 {len(results)}개  |  Prophet + 선형회귀 앙상블",
-        "매일 오전 7:00 자동 실행",
-    ]
-
-    email_body = "\n".join(lines)
-
     try:
-        send_email(f"[포트폴리오 분석] {today}", email_body)
+        send_portfolio_alert(results, page_url)
     except Exception as e:
         print(f"  ❌ 이메일 발송 실패: {e}")
 

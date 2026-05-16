@@ -11,9 +11,11 @@ def _calculate_rsi(series, period=14):
     return 100 - (100 / (1 + rs))
 
 
+# [개선] NaN을 건너뛴 유효 종가 기준으로 과거 수익률 계산
 def _period_return(df_close, current_price, trading_days):
-    if len(df_close) > trading_days:
-        past_price = df_close.iloc[-trading_days]
+    valid = df_close.dropna()
+    if len(valid) > trading_days:
+        past_price = float(valid.iloc[-trading_days])
         if past_price > 0:
             return (current_price - past_price) / past_price
     return None
@@ -28,7 +30,12 @@ def analyze_ticker(ticker, df, ticker_info):
     dict : 현재가, 52주 범위, 기간별 수익률, RSI, 이동평균, 배당률 등
     """
     close = df["Close"]
-    current_price = float(close.iloc[-1])
+
+    # [개선] 마지막 유효한(non-NaN) 종가를 사용해 NaN 전파 방지
+    valid_close = close.dropna()
+    if valid_close.empty:
+        raise ValueError(f"{ticker}: 유효한 종가 데이터가 없습니다.")
+    current_price = float(valid_close.iloc[-1])
 
     # 52주 고가/저가 (약 252 거래일)
     year_df = df.tail(252)
@@ -78,10 +85,13 @@ def analyze_ticker(ticker, df, ticker_info):
     annualized_vol = float(daily_vol * np.sqrt(252)) if not np.isnan(daily_vol) else None
 
     # 배당률 (yfinance info)
+    # [개선] yfinance 버전에 따라 소수(0.0329) 또는 퍼센트(3.29) 형태로 반환되므로
+    #        1 초과 시 100으로 나눠 소수로 통일
     div_yield = 0.0
     try:
         info = yf.Ticker(ticker).info
-        div_yield = float(info.get("dividendYield") or 0.0)
+        raw = float(info.get("dividendYield") or 0.0)
+        div_yield = raw / 100.0 if raw > 1.0 else raw
     except Exception:
         pass
 

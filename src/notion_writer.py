@@ -202,6 +202,23 @@ def _append_in_chunks(notion, page_id, blocks, chunk_size=50):
         time.sleep(0.4)  # Rate limit 대응 (초당 3회 제한)
 
 
+# [개선] has_more / next_cursor 페이지네이션으로 전체 하위 페이지 순회
+def _iter_child_pages(notion, parent_id):
+    """parent_id의 모든 하위 child_page 블록을 순회해 반환한다."""
+    cursor = None
+    while True:
+        kwargs = {"block_id": parent_id}
+        if cursor:
+            kwargs["start_cursor"] = cursor
+        resp = notion.blocks.children.list(**kwargs)
+        for block in resp.get("results", []):
+            if block.get("type") == "child_page":
+                yield block
+        if not resp.get("has_more"):
+            break
+        cursor = resp.get("next_cursor")
+
+
 def write_report_to_notion(results):
     """
     💼 투자 포트폴리오 하위에 '📡 포트폴리오 분석 리포트 (날짜)' 페이지를 생성한다.
@@ -211,13 +228,11 @@ def write_report_to_notion(results):
     today = datetime.today().strftime("%Y-%m-%d")
     page_title = f"📡 포트폴리오 분석 리포트 ({today})"
 
-    # 오늘 날짜 리포트가 이미 있으면 아카이브
-    existing = notion.blocks.children.list(block_id=NOTION_PORTFOLIO_PAGE_ID)
-    for block in existing.get("results", []):
-        if block.get("type") == "child_page":
-            if today in block["child_page"].get("title", ""):
-                notion.pages.update(block["id"], archived=True)
-                print(f"  기존 리포트 아카이브: {block['child_page']['title']}")
+    # [개선] 페이지네이션으로 전체 하위 페이지를 순회해 당일 중복 리포트 아카이브
+    for block in _iter_child_pages(notion, NOTION_PORTFOLIO_PAGE_ID):
+        if today in block["child_page"].get("title", ""):
+            notion.pages.update(block["id"], archived=True)
+            print(f"  기존 리포트 아카이브: {block['child_page']['title']} (ID: {block['id']})")
 
     # 새 페이지 생성 (제목만, 내용은 이후 append)
     new_page = notion.pages.create(

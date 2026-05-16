@@ -1,5 +1,9 @@
+import time
 import yfinance as yf
 import pandas as pd
+
+_MAX_RETRIES = 3
+_RETRY_DELAY = 5  # seconds
 
 
 def fetch_data(ticker, start_date, end_date):
@@ -16,10 +20,25 @@ def fetch_data(ticker, start_date, end_date):
     -------
     pd.DataFrame | None
     """
-    data = yf.download(ticker, start=start_date, end=end_date,
-                       progress=False, auto_adjust=True)
+    # [개선] 네트워크 불안정 대비 최대 3회 재시도
+    for attempt in range(1, _MAX_RETRIES + 1):
+        try:
+            data = yf.download(ticker, start=start_date, end=end_date,
+                               progress=False, auto_adjust=True)
+        except Exception as e:
+            if attempt < _MAX_RETRIES:
+                print(f"[RETRY] {ticker} — {attempt}회차 재시도 중... ({e})")
+                time.sleep(_RETRY_DELAY)
+                continue
+            return None
 
-    if data is None or data.empty:
+        if data is not None and not data.empty:
+            break
+
+        if attempt < _MAX_RETRIES:
+            print(f"[RETRY] {ticker} — {attempt}회차 재시도 중... (빈 응답)")
+            time.sleep(_RETRY_DELAY)
+    else:
         return None
 
     # MultiIndex 컬럼 평탄화 (yfinance 버전에 따라 발생)

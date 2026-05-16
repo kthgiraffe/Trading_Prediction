@@ -4,7 +4,14 @@ import pandas as pd
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 
-warnings.filterwarnings("ignore")
+# [개선] Prophet/Stan/cmdstanpy 관련 경고만 선택적으로 억제
+#        그 외 경고(데이터 부족, 수렴 실패 등)는 정상 출력됨
+warnings.filterwarnings("ignore", category=FutureWarning, module="prophet")
+warnings.filterwarnings("ignore", category=FutureWarning, module="pystan")
+warnings.filterwarnings("ignore", category=UserWarning, module="prophet")
+warnings.filterwarnings("ignore", message=".*cmdstanpy.*")
+warnings.filterwarnings("ignore", message=".*Stan.*")
+warnings.filterwarnings("ignore", message=".*Importing plotly failed.*")
 
 
 # ── 공통 유틸 ──────────────────────────────────────────────
@@ -169,7 +176,7 @@ def predict_ticker(ticker, df, div_yield=0.0):
     """
     results = {}
 
-    # 1개월 — 선형 회귀
+    # 1개월 — XGBoost
     try:
         results["1m"] = _predict_short_term(df, target_days=21)
     except Exception as e:
