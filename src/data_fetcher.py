@@ -1,6 +1,9 @@
 import time
 import yfinance as yf
 import pandas as pd
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 _MAX_RETRIES = 3
 _RETRY_DELAY = 5  # seconds
@@ -14,7 +17,7 @@ def fetch_data(ticker, start_date, end_date):
     ----------
     ticker     : 종목 티커 (예: 'SCHD')
     start_date : 시작일 'YYYY-MM-DD'
-    end_date   : 종료일 'YYYY-MM-DD'
+    end_date   : 종료일 'YYYY-MM-DD'  (yfinance exclusive → 내일 날짜로 전달)
 
     Returns
     -------
@@ -33,7 +36,7 @@ def fetch_data(ticker, start_date, end_date):
                                progress=False, auto_adjust=True)
         except Exception as e:
             if attempt < _MAX_RETRIES:
-                print(f"[RETRY] {ticker} — {attempt}회차 재시도 중... ({e})")
+                logger.warning(f"[{ticker}] {attempt}회차 재시도 중... ({e})")
                 time.sleep(_RETRY_DELAY)
                 continue
             return None
@@ -42,7 +45,7 @@ def fetch_data(ticker, start_date, end_date):
             break
 
         if attempt < _MAX_RETRIES:
-            print(f"[RETRY] {ticker} — {attempt}회차 재시도 중... (빈 응답)")
+            logger.warning(f"[{ticker}] {attempt}회차 재시도 중... (빈 응답)")
             time.sleep(_RETRY_DELAY)
     else:
         return None

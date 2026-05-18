@@ -4,8 +4,11 @@ from datetime import datetime
 from notion_client import Client
 from dotenv import load_dotenv
 from src.portfolio_config import NOTION_PORTFOLIO_PAGE_ID
+from src.logger import get_logger
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
+
+logger = get_logger(__name__)
 
 
 # ── Notion 클라이언트 ──────────────────────────────────────────
@@ -134,7 +137,7 @@ def _build_ticker_blocks(result):
         bold_prefix="기술지표"
     ))
 
-    # 예측 가격 (미래 기준)
+    # 예측 가격 (미래 기준) — PredictionResult 속성으로 접근
     pred_lines = []
     period_labels = [
         ("1m",  "1개월 후",  "XGBoost"),
@@ -143,17 +146,18 @@ def _build_ticker_blocks(result):
         ("12m", "12개월 후", "Prophet"),
     ]
     for key, label, method in period_labels:
-        pred = p.get(key, {})
-        if "error" in pred:
+        # [수정] dict → PredictionResult 속성 접근 + ok() 로 성공 여부 판단
+        pred = p.get(key)
+        if pred is None or not pred.ok():
             pred_lines.append(f"{label} ({method}): 예측 실패")
             continue
         total_str = ""
-        if key == "12m" and "total_return" in pred:
-            total_str = f"  │  배당 포함 총수익 {_fmt_pct(pred['total_return'])}"
+        if key == "12m" and pred.total_return is not None:
+            total_str = f"  │  배당 포함 총수익 {_fmt_pct(pred.total_return)}"
         pred_lines.append(
-            f"{label} ({method}): {_fmt_price(pred['predicted_price'])} "
-            f"({_fmt_pct(pred['predicted_return'])})  "
-            f"예상 범위 {_fmt_price(pred['lower'])} ~ {_fmt_price(pred['upper'])}"
+            f"{label} ({method}): {_fmt_price(pred.predicted_price)} "
+            f"({_fmt_pct(pred.predicted_return)})  "
+            f"예상 범위 {_fmt_price(pred.lower)} ~ {_fmt_price(pred.upper)}"
             f"{total_str}"
         )
 
@@ -232,15 +236,18 @@ def write_report_to_notion(results):
     """
     notion = _get_client()
     today = datetime.today().strftime("%Y-%m-%d")
-    # [수정] 데이터 기준일을 results에서 추출 — 실행일과 실제 데이터 날짜가 다를 수 있음
-    data_date = results[0].get("data_date", today) if results else today
+    # [수정] 종목별 data_date 중 가장 최신 날짜를 대표값으로 사용 (작업 5)
+    data_date = max(
+        (r.get("data_date", today) for r in results),
+        default=today,
+    )
     page_title = f"📡 포트폴리오 분석 리포트 ({today} 실행 / 데이터 기준: {data_date})"
 
     # [개선] 페이지네이션으로 전체 하위 페이지를 순회해 당일 중복 리포트 아카이브
     for block in _iter_child_pages(notion, NOTION_PORTFOLIO_PAGE_ID):
         if today in block["child_page"].get("title", ""):
             notion.pages.update(block["id"], archived=True)
-            print(f"  기존 리포트 아카이브: {block['child_page']['title']} (ID: {block['id']})")
+            logger.info(f"기존 리포트 아카이브: {block['child_page']['title']} (ID: {block['id']})")
 
     # 새 페이지 생성 (제목만, 내용은 이후 append)
     new_page = notion.pages.create(
@@ -251,7 +258,6 @@ def write_report_to_notion(results):
     )
     page_id = new_page["id"]
 
-    # 요약 섹션 추가
     # [수정] data_date를 _build_summary_blocks에 전달
     summary_blocks = _build_summary_blocks(results, today, data_date)
     _append_in_chunks(notion, page_id, summary_blocks)
@@ -262,5 +268,5 @@ def write_report_to_notion(results):
         _append_in_chunks(notion, page_id, ticker_blocks)
 
     page_url = new_page["url"]
-    print(f"  노션 리포트 생성 완료: {page_url}")
+    logger.info(f"노션 리포트 생성 완료: {page_url}")
     return page_url

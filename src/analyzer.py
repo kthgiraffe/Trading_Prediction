@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 import yfinance as yf
+from src.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def _calculate_rsi(series, period=14):
