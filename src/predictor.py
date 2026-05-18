@@ -91,6 +91,13 @@ def _predict_short_term(df, target_days=21):
     lower_return = float(model_low.predict(X_pred)[0])
     upper_return = float(model_high.predict(X_pred)[0])
 
+    # [수정] 단조성 보정 — 세 모델을 독립 학습하면 역전이 발생할 수 있으므로 강제 정렬
+    # 예측가(중앙값)가 반드시 lower ~ upper 범위 내에 있도록 보장
+    lower_return = min(lower_return, pred_return)
+    upper_return = max(upper_return, pred_return)
+    if lower_return > upper_return:
+        lower_return, upper_return = upper_return, lower_return
+
     current_price = float(df["Close"].iloc[-1])
 
     return {

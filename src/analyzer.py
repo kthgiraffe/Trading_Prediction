@@ -85,13 +85,17 @@ def analyze_ticker(ticker, df, ticker_info):
     annualized_vol = float(daily_vol * np.sqrt(252)) if not np.isnan(daily_vol) else None
 
     # 배당률 (yfinance info)
-    # [개선] yfinance 버전에 따라 소수(0.0329) 또는 퍼센트(3.29) 형태로 반환되므로
-    #        1 초과 시 100으로 나눠 소수로 통일
+    # [수정] fallback 키 순서로 배당률 수집 — SPYM처럼 dividendYield가 None인 종목 대응
+    # [수정] yfinance 버전에 따라 소수(0.0041) 또는 퍼센트(0.41) 형태로 반환되므로
+    #        1 초과 시 100으로 나눠 소수로 통일 (예: 42.0 → 0.42)
     div_yield = 0.0
     try:
         info = yf.Ticker(ticker).info
-        raw = float(info.get("dividendYield") or 0.0)
-        div_yield = raw / 100.0 if raw > 1.0 else raw
+        for key in ["dividendYield", "trailingAnnualDividendYield", "yield"]:
+            raw = float(info.get(key) or 0.0)
+            if raw > 0:
+                div_yield = raw / 100.0 if raw > 1.0 else raw
+                break
     except Exception:
         pass
 

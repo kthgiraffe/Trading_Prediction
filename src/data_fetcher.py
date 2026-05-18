@@ -20,6 +20,12 @@ def fetch_data(ticker, start_date, end_date):
     -------
     pd.DataFrame | None
     """
+    # [수정] yfinance 캐시 갱신 워밍업 — 최신 종가가 캐시에 반영되도록 1d 히스토리를 먼저 호출
+    try:
+        yf.Ticker(ticker).history(period="1d")
+    except Exception:
+        pass
+
     # [개선] 네트워크 불안정 대비 최대 3회 재시도
     for attempt in range(1, _MAX_RETRIES + 1):
         try:

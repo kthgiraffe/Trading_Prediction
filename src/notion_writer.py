@@ -92,7 +92,12 @@ def _build_ticker_blocks(result):
     blocks = []
 
     # 종목 헤딩
-    weight_str = f"{a['weight']:.0%}" if a["weight"] > 0 else "보유 중"
+    # [수정] 17.5% 같이 소수점이 있는 비중은 1자리 표시, 25%/16% 등 정수는 소수점 생략
+    w = a["weight"]
+    if w > 0:
+        weight_str = f"{w:.0%}" if w * 100 == int(w * 100) else f"{w:.1%}"
+    else:
+        weight_str = "보유 중"
     blocks.append(_heading3(
         f"{a['ticker']}  |  {a['name']}  ·  {a['category']}  [{weight_str}]"
     ))
@@ -163,10 +168,11 @@ def _build_ticker_blocks(result):
 
 # ── 포트폴리오 요약 블록 ──────────────────────────────────────
 
-def _build_summary_blocks(results, today):
+# [수정] data_date 파라미터 추가 — 실행일과 데이터 기준일을 분리해 callout에 표시
+def _build_summary_blocks(results, today, data_date):
     blocks = [
         _callout(
-            f"분석 기준일: {today}  │  총 {len(results)}개 종목  │  매일 자동 업데이트",
+            f"실행일: {today}  │  데이터 기준일: {data_date}  │  총 {len(results)}개 종목  │  매일 자동 업데이트",
             emoji="🤖",
             color="blue_background",
         ),
@@ -226,7 +232,9 @@ def write_report_to_notion(results):
     """
     notion = _get_client()
     today = datetime.today().strftime("%Y-%m-%d")
-    page_title = f"📡 포트폴리오 분석 리포트 ({today})"
+    # [수정] 데이터 기준일을 results에서 추출 — 실행일과 실제 데이터 날짜가 다를 수 있음
+    data_date = results[0].get("data_date", today) if results else today
+    page_title = f"📡 포트폴리오 분석 리포트 ({today} 실행 / 데이터 기준: {data_date})"
 
     # [개선] 페이지네이션으로 전체 하위 페이지를 순회해 당일 중복 리포트 아카이브
     for block in _iter_child_pages(notion, NOTION_PORTFOLIO_PAGE_ID):
@@ -244,7 +252,8 @@ def write_report_to_notion(results):
     page_id = new_page["id"]
 
     # 요약 섹션 추가
-    summary_blocks = _build_summary_blocks(results, today)
+    # [수정] data_date를 _build_summary_blocks에 전달
+    summary_blocks = _build_summary_blocks(results, today, data_date)
     _append_in_chunks(notion, page_id, summary_blocks)
 
     # 종목별 섹션 추가

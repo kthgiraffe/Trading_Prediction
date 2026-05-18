@@ -26,6 +26,8 @@ def _fmt_pct(v):
 def main():
     today = datetime.today().strftime("%Y-%m-%d")
     start_date = (datetime.today() - timedelta(days=365 * 3)).strftime("%Y-%m-%d")
+    # [수정] yfinance는 end_date를 exclusive로 처리하므로 내일 날짜로 설정해 오늘 종가까지 포함
+    end_date = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
 
     print(f"\n{'='*54}")
     print(f"  📡 포트폴리오 분석 리포트  ({today})")
@@ -42,12 +44,15 @@ def main():
         ticker = info["ticker"]
         print(f"[{ticker}] 데이터 수집 중...", end=" ", flush=True)
 
-        df = fetch_data(ticker, start_date, today)
+        # [수정] end_date를 내일 날짜로 전달
+        df = fetch_data(ticker, start_date, end_date)
         if df is None or df.empty:
             print("실패 — 건너뜁니다.")
             failed.append(ticker)
             continue
-        print("완료")
+        # [수정] 실제로 가져온 마지막 데이터 날짜를 출력해 최신 여부 확인
+        data_date = df.index[-1].strftime("%Y-%m-%d")
+        print(f"완료  (마지막 데이터: {data_date})")
 
         print(f"[{ticker}] 분석 중...", end=" ", flush=True)
         analysis = analyze_ticker(ticker, df, info)
@@ -57,7 +62,8 @@ def main():
         predictions = predict_ticker(ticker, df, div_yield=analysis["div_yield"])
         print("완료")
 
-        results.append({"analysis": analysis, "predictions": predictions})
+        # [수정] data_date 필드를 result에 포함시켜 notion_writer에서 리포트 제목에 반영
+        results.append({"analysis": analysis, "predictions": predictions, "data_date": data_date})
 
     # ── 콘솔 요약 출력 ────────────────────────────────────────
     print(f"\n{'─'*54}")
