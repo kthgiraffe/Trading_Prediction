@@ -20,7 +20,8 @@ results/
 logs/
 report.txt
 *.png
-*.txt
+# *.txt 는 너무 광범위 — requirements.txt까지 차단하므로 파일별로 명시
+# logs/ 규칙이 logs/run_log.txt를 이미 커버함
 
 # IDE
 .vscode/
