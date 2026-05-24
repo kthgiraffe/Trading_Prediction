@@ -8,3 +8,4 @@ scikit-learn
 scipy
 xgboost==3.2.0
 notion-client
+yahoo_fin

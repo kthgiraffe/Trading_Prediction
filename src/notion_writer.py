@@ -157,7 +157,93 @@ def _build_ticker_blocks(result):
         )
 
     blocks.append(_bullet("\n".join(pred_lines), bold_prefix="예측가 (오늘 기준)"))
+
+    # 펀더멘털 지표 섹션 (배당 CAGR, Payout/FCF, PER 밴드)
+    blocks.extend(_build_fundamentals_blocks(a))
+
     blocks.append(_divider())
+    return blocks
+
+
+def _build_fundamentals_blocks(a: dict) -> list:
+    """
+    펀더멘털 지표(배당 CAGR, Payout Ratio/FCF, PER 밴드)를 Notion 블록 리스트로 변환한다.
+    데이터가 없는 항목은 출력에서 조용히 생략한다.
+    """
+    blocks = []
+    div_cagr   = a.get("div_cagr") or {}
+    payout     = a.get("payout_fcf") or {}
+    per        = a.get("per_band") or {}
+
+    # -- 배당 CAGR 및 Yield on Cost -------------------------------------------
+    cagr_5y  = div_cagr.get("cagr_5y")
+    cagr_10y = div_cagr.get("cagr_10y")
+    yoc_5y   = div_cagr.get("yoc_5y")
+    yoc_10y  = div_cagr.get("yoc_10y")
+
+    if cagr_5y is not None or cagr_10y is not None:
+        parts = [p for p in [
+            f"5년: {cagr_5y:.1%}" if cagr_5y is not None else None,
+            f"10년: {cagr_10y:.1%}" if cagr_10y is not None else None,
+        ] if p]
+        blocks.append(_bullet("  |  ".join(parts), bold_prefix="배당 CAGR"))
+
+    if yoc_5y is not None or yoc_10y is not None:
+        div_yield = a.get("div_yield") or 0.0
+        parts = [p for p in [
+            f"5년 후: {yoc_5y:.1%}" if yoc_5y is not None else None,
+            f"10년 후: {yoc_10y:.1%}" if yoc_10y is not None else None,
+            f"(현재 배당률 {div_yield:.1%} 기준)" if div_yield > 0 else None,
+        ] if p]
+        blocks.append(_bullet("  |  ".join(parts), bold_prefix="Yield on Cost"))
+
+    # -- Payout Ratio + FCF 커버리지 ------------------------------------------
+    pr      = payout.get("payout_ratio")
+    fcf_pr  = payout.get("fcf_payout_ratio")
+    warning = payout.get("warning")
+    is_reit = payout.get("is_reit", False)
+
+    if pr is not None or fcf_pr is not None:
+        parts = [p for p in [
+            f"Payout Ratio: {pr:.0%}" if pr is not None else None,
+            f"FCF 커버리지: {fcf_pr:.0%}" if fcf_pr is not None else None,
+            "(REIT — EPS 기준 해석 주의)" if is_reit else None,
+        ] if p]
+        blocks.append(_bullet("  |  ".join(parts), bold_prefix="배당 지속성"))
+        if warning:
+            blocks.append(_bullet(f"[주의] {warning}"))
+
+    # -- PER 밴드 (ETF 제외, per_band 데이터가 있는 경우에만 출력) ---------------
+    current_pe  = per.get("current_pe")
+    pe_low      = per.get("pe_low")
+    pe_mid      = per.get("pe_mid")
+    pe_high     = per.get("pe_high")
+    fair_val    = per.get("fair_value")
+    valuation   = per.get("valuation")
+    current_price = a.get("current_price")
+
+    if current_pe is not None and pe_mid is not None:
+        pe_text = (
+            f"현재 PER: {current_pe:.1f}x  |  "
+            f"역사적 범위: {pe_low:.1f}x ~ {pe_high:.1f}x (중간: {pe_mid:.1f}x)"
+        )
+        blocks.append(_bullet(pe_text, bold_prefix="밸류에이션"))
+
+        if fair_val is not None and current_price is not None:
+            val_label_map = {
+                "undervalued": "저평가",
+                "fair": "적정",
+                "overvalued": "고평가",
+            }
+            val_label = val_label_map.get(valuation, "")
+            diff_pct = (current_price - fair_val) / fair_val
+            direction = "고평가" if diff_pct > 0 else "저평가"
+            fair_text = (
+                f"적정가 추정: ${fair_val:.2f}  |  "
+                f"현재가 대비: {abs(diff_pct):.1%} {direction}  [{val_label}]"
+            )
+            blocks.append(_bullet(fair_text))
+
     return blocks
 
 

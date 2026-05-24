@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import yfinance as yf
 from src.logger import get_logger
+from src.fundamentals import get_dividend_cagr, get_payout_and_fcf, get_per_band
 
 logger = get_logger(__name__)
 
@@ -30,7 +31,8 @@ def analyze_ticker(ticker, df, ticker_info):
 
     Returns
     -------
-    dict : 현재가, 52주 범위, 기간별 수익률, RSI, 이동평균, 배당률 등
+    dict : 현재가, 52주 범위, 기간별 수익률, RSI, 이동평균, 배당률,
+           배당 CAGR, Payout/FCF 커버리지, PER 밴드 등
     """
     close = df["Close"]
 
@@ -123,6 +125,11 @@ def analyze_ticker(ticker, df, ticker_info):
     except Exception:
         pass
 
+    # 펀더멘털 지표 수집 (실패 시 빈 딕셔너리를 사용해 파이프라인을 유지한다)
+    div_cagr   = get_dividend_cagr(ticker)
+    payout_fcf = get_payout_and_fcf(ticker)
+    per_band   = get_per_band(ticker, close)
+
     return {
         "ticker": ticker,
         "name": ticker_info["name"],
@@ -147,4 +154,7 @@ def analyze_ticker(ticker, df, ticker_info):
         "momentum_20d": momentum_20d,
         "annualized_vol": annualized_vol,
         "div_yield": div_yield,
+        "div_cagr": div_cagr,
+        "payout_fcf": payout_fcf,
+        "per_band": per_band,
     }
