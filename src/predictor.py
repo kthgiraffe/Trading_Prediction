@@ -9,7 +9,7 @@ from src.logger import get_logger
 
 logger = get_logger(__name__)
 
-# [개선] Prophet/Stan/cmdstanpy 관련 경고만 선택적으로 억제
+# Prophet/Stan 관련 불필요한 경고를 억제한다
 warnings.filterwarnings("ignore", category=FutureWarning, module="prophet")
 warnings.filterwarnings("ignore", category=FutureWarning, module="pystan")
 warnings.filterwarnings("ignore", category=UserWarning, module="prophet")
@@ -18,7 +18,7 @@ warnings.filterwarnings("ignore", message=".*Stan.*")
 warnings.filterwarnings("ignore", message=".*Importing plotly failed.*")
 
 
-# ── 예측 결과 dataclass ───────────────────────────────────────
+# -- 예측 결과 dataclass ------------------------------------------------------
 
 @dataclass
 class PredictionResult:
@@ -32,10 +32,11 @@ class PredictionResult:
     error: Optional[str] = None
 
     def ok(self) -> bool:
+        """예측이 성공적으로 완료됐는지 반환한다."""
         return self.error is None
 
 
-# ── 공통 유틸 ──────────────────────────────────────────────────
+# -- 공통 유틸 -----------------------------------------------------------------
 
 def _rsi(series, period=14):
     delta = series.diff(1)
@@ -46,7 +47,7 @@ def _rsi(series, period=14):
 
 
 def _build_features(df):
-    """기술적 지표 기반 특성 행렬을 만든다."""
+    """종가 기반 기술적 지표 특성 행렬을 구성한다."""
     d = df[["Close"]].copy()
     d["rsi"] = _rsi(d["Close"])
     d["ma20"] = d["Close"].rolling(20).mean()
@@ -60,13 +61,15 @@ def _build_features(df):
     return d.dropna()
 
 
-# ── 단기 예측 (1개월) : XGBoost + 기술적 지표 ───────────────
+# -- 단기 예측 (1개월): XGBoost -----------------------------------------------
 
 def _predict_short_term(df, target_days=21) -> PredictionResult:
     """
-    XGBoost로 target_days 이후 수익률을 예측한다.
-    - 중앙값(50%), 하한(10%), 상한(90%) 세 모델로 80% 예측 구간을 구성
-    - 선형회귀와 달리 지표 간 조합 패턴(RSI 고점 + MA 하락 등)을 학습
+    XGBoost Quantile Regression으로 target_days 후 수익률을 예측한다.
+
+    10th / 50th / 90th percentile 세 모델을 독립 학습해 80% 예측 구간을 구성한다.
+    각 모델이 독립적이므로 역전이 발생할 수 있어, 단조성 보정(lower <= mid <= upper)을
+    예측 후 강제 적용한다.
     """
     feat_df = _build_features(df)
     feature_cols = [
@@ -83,7 +86,6 @@ def _predict_short_term(df, target_days=21) -> PredictionResult:
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
 
-    # 공통 하이퍼파라미터 (과적합 방지 설정)
     base_params = dict(
         n_estimators=300,
         max_depth=4,
@@ -95,20 +97,19 @@ def _predict_short_term(df, target_days=21) -> PredictionResult:
         verbosity=0,
     )
 
-    model_mid = XGBRegressor(objective="reg:quantileerror", quantile_alpha=0.5, **base_params)
-    model_mid.fit(X_scaled, y)
-    model_low = XGBRegressor(objective="reg:quantileerror", quantile_alpha=0.1, **base_params)
-    model_low.fit(X_scaled, y)
+    model_mid  = XGBRegressor(objective="reg:quantileerror", quantile_alpha=0.5, **base_params)
+    model_low  = XGBRegressor(objective="reg:quantileerror", quantile_alpha=0.1, **base_params)
     model_high = XGBRegressor(objective="reg:quantileerror", quantile_alpha=0.9, **base_params)
+    model_mid.fit(X_scaled, y)
+    model_low.fit(X_scaled, y)
     model_high.fit(X_scaled, y)
 
     X_pred = scaler.transform(feat_df[feature_cols].iloc[[-1]].values)
-    pred_return = float(model_mid.predict(X_pred)[0])
+    pred_return  = float(model_mid.predict(X_pred)[0])
     lower_return = float(model_low.predict(X_pred)[0])
     upper_return = float(model_high.predict(X_pred)[0])
 
-    # [수정] 단조성 보정 — 세 모델을 독립 학습하면 역전이 발생할 수 있으므로 강제 정렬
-    # 예측가(중앙값)가 반드시 lower ~ upper 범위 내에 있도록 보장
+    # 독립 학습된 세 모델의 예측값이 역전되는 경우를 단조성 보정으로 수정한다
     lower_return = min(lower_return, pred_return)
     upper_return = max(upper_return, pred_return)
     if lower_return > upper_return:
@@ -126,21 +127,21 @@ def _predict_short_term(df, target_days=21) -> PredictionResult:
     )
 
 
-# ── 중·장기 예측 (3 / 6 / 12개월) : Prophet ─────────────────
+# -- 중장기 예측 (3 / 6 / 12개월): Prophet -----------------------------------
 
 def _predict_prophet(df, periods_days, label) -> PredictionResult:
     """
-    Prophet으로 periods_days 이후 가격을 예측한다.
-    - weekly_seasonality : 주 5일 장세 패턴 반영
-    - yearly_seasonality : 연간 계절성 반영
-    - changepoint_prior_scale=0.05 : 안정형 포트폴리오에 적합한 보수적 변화점
-    - interval_width=0.80 : 80% 신뢰 구간
+    Prophet으로 periods_days 후 가격을 예측한다.
+
+    weekly_seasonality와 yearly_seasonality를 활성화해 주간/연간 주기를 반영하고,
+    changepoint_prior_scale=0.05로 보수적인 추세 변화를 가정한다.
+    interval_width=0.80으로 80% 신뢰 구간을 제공한다.
     """
     from prophet import Prophet
 
     prophet_df = df[["Close"]].reset_index()
     prophet_df.columns = ["ds", "y"]
-    # tz-naive 변환 (Prophet 요구사항)
+    # Prophet은 tz-naive DatetimeIndex를 요구한다
     prophet_df["ds"] = pd.to_datetime(prophet_df["ds"]).dt.tz_localize(None)
 
     model = Prophet(
@@ -153,13 +154,13 @@ def _predict_prophet(df, periods_days, label) -> PredictionResult:
     )
     model.fit(prophet_df, iter=300)
 
-    future = model.make_future_dataframe(periods=periods_days)
+    future   = model.make_future_dataframe(periods=periods_days)
     forecast = model.predict(future)
-    last = forecast.iloc[-1]
+    last     = forecast.iloc[-1]
 
     current_price = float(df["Close"].iloc[-1])
-    pred_price = float(last["yhat"])
-    pred_return = (pred_price - current_price) / current_price
+    pred_price    = float(last["yhat"])
+    pred_return   = (pred_price - current_price) / current_price
 
     return PredictionResult(
         period=label,
@@ -171,14 +172,14 @@ def _predict_prophet(df, periods_days, label) -> PredictionResult:
     )
 
 
-# ── 배당 포함 총수익률 추정 ────────────────────────────────────
+# -- 배당 포함 총수익률 추정 --------------------------------------------------
 
 def _estimate_total_return(pred_return, div_yield, years):
-    """예측 가격 상승분 + 배당 수익률 합산으로 총수익률 추정."""
+    """예측 가격 수익률에 배당 수익률 기여분을 합산해 총수익률을 추정한다."""
     return pred_return + div_yield * years
 
 
-# ── 퍼블릭 API ────────────────────────────────────────────────
+# -- 퍼블릭 API ---------------------------------------------------------------
 
 def predict_ticker(ticker, df, div_yield=0.0) -> dict:
     """
@@ -187,33 +188,29 @@ def predict_ticker(ticker, df, div_yield=0.0) -> dict:
     Parameters
     ----------
     ticker   : 종목 티커 (로깅용)
-    df       : OHLCV DataFrame (최소 1년 이상 권장, 3년 이상 최적)
-    div_yield: 연간 배당률 (소수, 예: 0.03 = 3%)
+    df       : OHLCV DataFrame (최소 1년, 3년 이상 권장)
+    div_yield: 연간 배당률 소수 형태 (예: 0.03 = 3%)
     """
     results = {}
 
-    # 1개월 — XGBoost
     try:
         results["1m"] = _predict_short_term(df, target_days=21)
     except Exception as e:
         logger.error(f"[{ticker}] 1개월 예측 실패: {e}")
         results["1m"] = PredictionResult(period="1개월", method="XGBoost + 기술적 지표", error=str(e))
 
-    # 3개월 — Prophet
     try:
         results["3m"] = _predict_prophet(df, 90, "3개월")
     except Exception as e:
         logger.error(f"[{ticker}] 3개월 예측 실패: {e}")
         results["3m"] = PredictionResult(period="3개월", method="Prophet (트렌드 + 계절성)", error=str(e))
 
-    # 6개월 — Prophet
     try:
         results["6m"] = _predict_prophet(df, 180, "6개월")
     except Exception as e:
         logger.error(f"[{ticker}] 6개월 예측 실패: {e}")
         results["6m"] = PredictionResult(period="6개월", method="Prophet (트렌드 + 계절성)", error=str(e))
 
-    # 12개월 — Prophet + 배당 포함 총수익률
     try:
         pred_12m = _predict_prophet(df, 365, "12개월")
         pred_12m.total_return = _estimate_total_return(

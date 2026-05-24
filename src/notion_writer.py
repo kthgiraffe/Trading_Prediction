@@ -1,9 +1,9 @@
 import os
 import time
-from datetime import datetime
+from datetime import datetime, date, timedelta
 from notion_client import Client
 from dotenv import load_dotenv
-from src.portfolio_config import NOTION_PORTFOLIO_PAGE_ID
+from src.portfolio_config import NOTION_REPORT_ROOT_PAGE_ID
 from src.logger import get_logger
 
 load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
@@ -11,7 +11,7 @@ load_dotenv(os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env"))
 logger = get_logger(__name__)
 
 
-# ── Notion 클라이언트 ──────────────────────────────────────────
+# -- Notion 클라이언트 ---------------------------------------------------------
 
 def _get_client():
     token = os.getenv("NOTION_TOKEN")
@@ -23,7 +23,7 @@ def _get_client():
     return Client(auth=token)
 
 
-# ── 포맷 헬퍼 ─────────────────────────────────────────────────
+# -- 포맷 헬퍼 -----------------------------------------------------------------
 
 def _fmt_price(v):
     return f"${v:.2f}" if v is not None else "N/A"
@@ -38,7 +38,7 @@ def _fmt_pct_pos(v):
     return _fmt_pct(v, plus=False)
 
 
-# ── Notion 블록 빌더 ──────────────────────────────────────────
+# -- Notion 블록 빌더 ----------------------------------------------------------
 
 def _text(content, bold=False, color="default"):
     t = {"type": "text", "text": {"content": content}}
@@ -67,14 +67,14 @@ def _bullet(text, bold_prefix=None):
 def _divider():
     return {"object": "block", "type": "divider", "divider": {}}
 
-def _callout(text, emoji="📅", color="blue_background"):
+def _callout(text, color="blue_background"):
+    """아이콘 없이 배경색만 적용된 callout 블록을 반환한다."""
     return {
         "object": "block", "type": "callout",
         "callout": {
             "rich_text": [_text(text)],
-            "icon": {"type": "emoji", "emoji": emoji},
             "color": color,
-        }
+        },
     }
 
 def _paragraph(text):
@@ -82,30 +82,29 @@ def _paragraph(text):
             "paragraph": {"rich_text": [_text(text)]}}
 
 
-# ── 종목 블록 생성 ────────────────────────────────────────────
+# -- 종목 블록 생성 ------------------------------------------------------------
 
 def _rsi_bar(rsi):
-    """RSI 값을 시각적 바로 표현."""
+    """RSI 값(0~100)을 10칸 블록 바로 시각화한다."""
     filled = round(rsi / 10)
-    return "█" * filled + "░" * (10 - filled)
+    return "[" + "#" * filled + "-" * (10 - filled) + "]"
 
 def _build_ticker_blocks(result):
     a = result["analysis"]
     p = result["predictions"]
     blocks = []
 
-    # 종목 헤딩
-    # [수정] 17.5% 같이 소수점이 있는 비중은 1자리 표시, 25%/16% 등 정수는 소수점 생략
+    # 비중 표시: 소수점 없이 떨어지면 정수 포맷, 아니면 소수 첫째 자리까지 표시
     w = a["weight"]
     if w > 0:
-        weight_str = f"{w:.0%}" if w * 100 == int(w * 100) else f"{w:.1%}"
+        weight_str = f"{w:.0%}" if (w * 100) == int(w * 100) else f"{w:.1%}"
     else:
         weight_str = "보유 중"
+
     blocks.append(_heading3(
         f"{a['ticker']}  |  {a['name']}  ·  {a['category']}  [{weight_str}]"
     ))
 
-    # 현재 상태
     blocks.append(_bullet(
         f"{_fmt_price(a['current_price'])}  "
         f"(52주: {_fmt_price(a['low_52w'])} ~ {_fmt_price(a['high_52w'])}  "
@@ -116,28 +115,25 @@ def _build_ticker_blocks(result):
         f"{_fmt_pct(a['div_yield'], plus=False)}  ({a['div_freq']} 지급)",
         bold_prefix="배당률"
     ))
-
-    # 기간별 수익률 (과거 실적)
     blocks.append(_bullet(
-        f"YTD(올해) {_fmt_pct(a['ytd_return'])}  │  "
-        f"1개월 전 {_fmt_pct(a['return_1m'])}  │  "
-        f"3개월 전 {_fmt_pct(a['return_3m'])}  │  "
-        f"6개월 전 {_fmt_pct(a['return_6m'])}  │  "
+        f"YTD(올해) {_fmt_pct(a['ytd_return'])}  |  "
+        f"1개월 전 {_fmt_pct(a['return_1m'])}  |  "
+        f"3개월 전 {_fmt_pct(a['return_3m'])}  |  "
+        f"6개월 전 {_fmt_pct(a['return_6m'])}  |  "
         f"1년 전 {_fmt_pct(a['return_1y'])}",
         bold_prefix="과거 수익률"
     ))
 
-    # 기술적 지표
     vol_str = f"변동성(연율) {_fmt_pct_pos(a['annualized_vol'])}" if a["annualized_vol"] else ""
     blocks.append(_bullet(
-        f"RSI {a['rsi']:.1f} [{_rsi_bar(a['rsi'])}] {a['rsi_signal']}  │  "
-        f"MA추세 {a['ma_signal']}  │  "
-        f"MA20 {_fmt_price(a['ma20'])} / MA60 {_fmt_price(a['ma60'])} / MA200 {_fmt_price(a['ma200'])}  │  "
+        f"RSI {a['rsi']:.1f} {_rsi_bar(a['rsi'])} {a['rsi_signal']}  |  "
+        f"MA추세 {a['ma_signal']}  |  "
+        f"MA20 {_fmt_price(a['ma20'])} / MA60 {_fmt_price(a['ma60'])} / MA200 {_fmt_price(a['ma200'])}  |  "
         f"{vol_str}",
         bold_prefix="기술지표"
     ))
 
-    # 예측 가격 (미래 기준) — PredictionResult 속성으로 접근
+    # PredictionResult 속성으로 접근하고 ok()로 성공 여부를 판단한다
     pred_lines = []
     period_labels = [
         ("1m",  "1개월 후",  "XGBoost"),
@@ -146,14 +142,13 @@ def _build_ticker_blocks(result):
         ("12m", "12개월 후", "Prophet"),
     ]
     for key, label, method in period_labels:
-        # [수정] dict → PredictionResult 속성 접근 + ok() 로 성공 여부 판단
         pred = p.get(key)
         if pred is None or not pred.ok():
             pred_lines.append(f"{label} ({method}): 예측 실패")
             continue
         total_str = ""
         if key == "12m" and pred.total_return is not None:
-            total_str = f"  │  배당 포함 총수익 {_fmt_pct(pred.total_return)}"
+            total_str = f"  |  배당 포함 총수익 {_fmt_pct(pred.total_return)}"
         pred_lines.append(
             f"{label} ({method}): {_fmt_price(pred.predicted_price)} "
             f"({_fmt_pct(pred.predicted_return)})  "
@@ -161,29 +156,24 @@ def _build_ticker_blocks(result):
             f"{total_str}"
         )
 
-    blocks.append(_bullet(
-        "\n".join(pred_lines),
-        bold_prefix="예측가 (오늘 기준)"
-    ))
-
+    blocks.append(_bullet("\n".join(pred_lines), bold_prefix="예측가 (오늘 기준)"))
     blocks.append(_divider())
     return blocks
 
 
-# ── 포트폴리오 요약 블록 ──────────────────────────────────────
+# -- 포트폴리오 요약 블록 ------------------------------------------------------
 
-# [수정] data_date 파라미터 추가 — 실행일과 데이터 기준일을 분리해 callout에 표시
 def _build_summary_blocks(results, today, data_date):
+    """실행일/데이터 기준일 callout과 카테고리별 현황 요약 블록을 반환한다."""
     blocks = [
         _callout(
-            f"실행일: {today}  │  데이터 기준일: {data_date}  │  총 {len(results)}개 종목  │  매일 자동 업데이트",
-            emoji="🤖",
+            f"실행일: {today}  |  데이터 기준일: {data_date}  |  "
+            f"총 {len(results)}개 종목  |  매일 자동 업데이트",
             color="blue_background",
         ),
-        _heading2("📊 포트폴리오 현황 요약"),
+        _heading2("포트폴리오 현황 요약"),
     ]
 
-    # 카테고리별 그룹 요약
     categories = {}
     for r in results:
         cat = r["analysis"]["category"]
@@ -194,27 +184,31 @@ def _build_summary_blocks(results, today, data_date):
             f"{a['ticker']} {_fmt_price(a['current_price'])} ({_fmt_pct(a['return_1m'])})"
             for a in items
         )
-        blocks.append(_bullet(tickers, bold_prefix=cat))
+        blocks.append(_bullet(tickers, bold_prefix=f"[{cat}]"))
 
     blocks.append(_divider())
-    blocks.append(_heading2("📈 종목별 상세 분석"))
+    blocks.append(_heading2("종목별 상세 분석"))
     return blocks
 
 
-# ── 페이지 생성 (분할 append) ─────────────────────────────────
+# -- Notion API 유틸 -----------------------------------------------------------
 
 def _append_in_chunks(notion, page_id, blocks, chunk_size=50):
+    """Notion Rate Limit(초당 3회) 대응을 위해 블록을 chunk_size 단위로 나눠 추가한다."""
     for i in range(0, len(blocks), chunk_size):
         notion.blocks.children.append(
             block_id=page_id,
             children=blocks[i : i + chunk_size],
         )
-        time.sleep(0.4)  # Rate limit 대응 (초당 3회 제한)
+        time.sleep(0.4)
 
 
-# [개선] has_more / next_cursor 페이지네이션으로 전체 하위 페이지 순회
-def _iter_child_pages(notion, parent_id):
-    """parent_id의 모든 하위 child_page 블록을 순회해 반환한다."""
+def _find_or_create_child_page(notion, parent_id: str, title: str) -> str:
+    """
+    parent_id 하위에서 title과 일치하는 child_page를 탐색한다.
+    존재하지 않으면 해당 제목으로 새 페이지를 생성하고 페이지 ID를 반환한다.
+    has_more / next_cursor 페이지네이션으로 전체 하위 페이지를 순회한다.
+    """
     cursor = None
     while True:
         kwargs = {"block_id": parent_id}
@@ -223,50 +217,107 @@ def _iter_child_pages(notion, parent_id):
         resp = notion.blocks.children.list(**kwargs)
         for block in resp.get("results", []):
             if block.get("type") == "child_page":
-                yield block
+                if block["child_page"].get("title") == title:
+                    return block["id"]
         if not resp.get("has_more"):
             break
         cursor = resp.get("next_cursor")
 
+    page = notion.pages.create(
+        parent={"type": "page_id", "page_id": parent_id},
+        properties={"title": [{"type": "text", "text": {"content": title}}]},
+    )
+    logger.info(f"하위 페이지 생성: '{title}'")
+    return page["id"]
+
+
+# -- 연도/월/주간 계층 구조 헬퍼 -----------------------------------------------
+
+def _get_week_range(d: date):
+    """ISO 주차 기준 월요일~일요일 날짜 범위를 반환한다."""
+    iso = d.isocalendar()
+    year, week_num = iso[0], iso[1]
+    monday = d - timedelta(days=d.weekday())
+    sunday = monday + timedelta(days=6)
+    return year, week_num, monday, sunday
+
+
+def _format_week_title(week_num: int, monday: date, sunday: date) -> str:
+    """'W{번호} ({월.일} - {월.일})' 형식 주간 페이지 제목을 반환한다."""
+    return f"W{week_num:02d} ({monday.strftime('%m.%d')} - {sunday.strftime('%m.%d')})"
+
+
+def _format_month_title(d: date) -> str:
+    """'{월:02d} - {영어월}' 형식 월 페이지 제목을 반환한다 (예: '05 - May')."""
+    return d.strftime("%m - %b")
+
+
+def _resolve_target_page_id(notion, run_date: date) -> str:
+    """
+    실행일 기준 연도/월/주간 페이지를 순서대로 탐색하고, 없으면 자동 생성한다.
+    리포트를 저장할 주간 페이지 ID를 반환한다.
+
+    저장 구조:
+        포트폴리오 분석 리포트 (NOTION_REPORT_ROOT_PAGE_ID)
+        └── 2026
+            └── 05 - May
+                └── W21 (05.18 - 05.24)
+                    └── 분석 리포트 (날짜)
+    """
+    year, week_num, monday, sunday = _get_week_range(run_date)
+    year_title  = str(year)
+    month_title = _format_month_title(run_date)
+    week_title  = _format_week_title(week_num, monday, sunday)
+
+    year_id  = _find_or_create_child_page(notion, NOTION_REPORT_ROOT_PAGE_ID, year_title)
+    month_id = _find_or_create_child_page(notion, year_id, month_title)
+    week_id  = _find_or_create_child_page(notion, month_id, week_title)
+    return week_id
+
+
+# -- 퍼블릭 API ----------------------------------------------------------------
 
 def write_report_to_notion(results):
     """
-    💼 투자 포트폴리오 하위에 '📡 포트폴리오 분석 리포트 (날짜)' 페이지를 생성한다.
-    같은 날짜의 기존 리포트가 있으면 아카이브 후 새로 생성한다.
+    실행일 기준 연도/월/주간 계층 구조 하위에 당일 리포트 페이지를 생성한다.
+    같은 날짜의 기존 리포트가 주간 페이지 내에 있으면 아카이브 후 새로 생성한다.
     """
-    notion = _get_client()
-    today = datetime.today().strftime("%Y-%m-%d")
-    # [수정] 종목별 data_date 중 가장 최신 날짜를 대표값으로 사용 (작업 5)
+    notion   = _get_client()
+    run_date = date.today()
+    today    = run_date.strftime("%Y-%m-%d")
+
+    # 종목별 data_date 중 가장 최신 날짜를 대표 기준일로 사용한다
     data_date = max(
         (r.get("data_date", today) for r in results),
         default=today,
     )
-    page_title = f"📡 포트폴리오 분석 리포트 ({today} 실행 / 데이터 기준: {data_date})"
 
-    # [개선] 페이지네이션으로 전체 하위 페이지를 순회해 당일 중복 리포트 아카이브
-    for block in _iter_child_pages(notion, NOTION_PORTFOLIO_PAGE_ID):
-        if today in block["child_page"].get("title", ""):
-            notion.pages.update(block["id"], archived=True)
-            logger.info(f"기존 리포트 아카이브: {block['child_page']['title']} (ID: {block['id']})")
+    # 저장 대상 주간 페이지를 탐색하거나 자동 생성한다
+    target_page_id = _resolve_target_page_id(notion, run_date)
 
-    # 새 페이지 생성 (제목만, 내용은 이후 append)
+    page_title = f"분석 리포트 ({today} 실행 / 데이터 기준: {data_date})"
+
+    # 주간 페이지 내에서 당일 중복 리포트를 탐색해 아카이브한다
+    resp = notion.blocks.children.list(block_id=target_page_id)
+    for block in resp.get("results", []):
+        if block.get("type") == "child_page":
+            if today in block["child_page"].get("title", ""):
+                notion.pages.update(block["id"], archived=True)
+                logger.info(f"기존 리포트 아카이브: {block['child_page']['title']}")
+
     new_page = notion.pages.create(
-        parent={"type": "page_id", "page_id": NOTION_PORTFOLIO_PAGE_ID},
-        properties={
-            "title": [{"type": "text", "text": {"content": page_title}}]
-        },
+        parent={"type": "page_id", "page_id": target_page_id},
+        properties={"title": [{"type": "text", "text": {"content": page_title}}]},
     )
     page_id = new_page["id"]
 
-    # [수정] data_date를 _build_summary_blocks에 전달
     summary_blocks = _build_summary_blocks(results, today, data_date)
     _append_in_chunks(notion, page_id, summary_blocks)
 
-    # 종목별 섹션 추가
     for result in results:
         ticker_blocks = _build_ticker_blocks(result)
         _append_in_chunks(notion, page_id, ticker_blocks)
 
     page_url = new_page["url"]
-    logger.info(f"노션 리포트 생성 완료: {page_url}")
+    logger.info(f"리포트 생성 완료: {page_url}")
     return page_url

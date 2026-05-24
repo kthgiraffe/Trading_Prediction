@@ -29,48 +29,42 @@ def _fmt_pct(v):
 
 
 def main():
-    # [수정] 필수 환경변수 검증 — 누락 시 명확한 오류 메시지와 함께 즉시 종료
+    # 필수 환경변수 누락 시 즉시 종료한다
     validate_env()
 
-    today = datetime.today().strftime("%Y-%m-%d")
+    today      = datetime.today().strftime("%Y-%m-%d")
     start_date = (datetime.today() - timedelta(days=365 * 3)).strftime("%Y-%m-%d")
-    # [수정] yfinance는 end_date를 exclusive로 처리하므로 내일 날짜로 설정해 오늘 종가까지 포함
-    end_date = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
+    # yfinance history()는 end 날짜를 exclusive로 처리하므로 내일 날짜를 전달한다
+    end_date   = (datetime.today() + timedelta(days=1)).strftime("%Y-%m-%d")
 
     logger.info("=" * 54)
-    logger.info(f"  📡 포트폴리오 분석 리포트  ({today})")
+    logger.info(f"  Portfolio Analysis Report  ({today})")
     logger.info("=" * 54)
     logger.info(f"  분석 종목 : {len(PORTFOLIO)}개")
     logger.info(f"  데이터 기간: {start_date} ~ {today} (3년)")
-    logger.info("  예측 방식 : 1M XGBoost  |  3·6·12M Prophet")
+    logger.info("  예측 방식 : 1M XGBoost  |  3/6/12M Prophet")
     logger.info("=" * 54)
 
-    # [수정] 병렬 fetch — ThreadPoolExecutor로 12개 종목을 동시 수집해 시간 단축
+    # fetch 단계만 병렬화한다. 분석/예측은 순차 처리를 유지한다.
     def _fetch_one(info):
-        ticker = info["ticker"]
-        logger.info(f"[{ticker}] 데이터 수집 중...")
-        df = fetch_data(ticker, start_date, end_date)
-        return info, df
+        return info, fetch_data(info["ticker"], start_date, end_date)
 
     logger.info(f"데이터 병렬 수집 시작 (최대 {min(len(PORTFOLIO), 6)}개 동시)")
     with ThreadPoolExecutor(max_workers=min(len(PORTFOLIO), 6)) as executor:
-        # PORTFOLIO 순서를 유지하기 위해 executor.map 사용
         fetched = list(executor.map(_fetch_one, PORTFOLIO))
 
     results = []
-    failed = []
+    failed  = []
 
     for info, df in fetched:
         ticker = info["ticker"]
 
         if df is None or df.empty:
-            logger.warning(f"[{ticker}] 데이터 수집 실패 — 건너뜁니다.")
+            logger.warning(f"[{ticker}] 데이터 수집 실패 - 건너뜁니다.")
             failed.append(ticker)
             continue
 
-        # [수정] 실제로 가져온 마지막 데이터 날짜를 출력해 최신 여부 확인
         data_date = df.index[-1].strftime("%Y-%m-%d")
-        logger.info(f"[{ticker}] 수집 완료  (마지막 데이터: {data_date})")
 
         try:
             analysis = analyze_ticker(ticker, df, info)
@@ -84,22 +78,23 @@ def main():
         predictions = predict_ticker(ticker, df, div_yield=analysis["div_yield"])
         logger.info(f"[{ticker}] 예측 완료")
 
-        # [수정] data_date 필드를 result에 포함시켜 notion_writer에서 리포트 제목에 반영
-        results.append({"analysis": analysis, "predictions": predictions, "data_date": data_date})
+        results.append({
+            "analysis":    analysis,
+            "predictions": predictions,
+            "data_date":   data_date,
+        })
 
-    # ── 콘솔 요약 출력 ────────────────────────────────────────
-    logger.info("─" * 54)
+    # 종목별 요약 출력
+    logger.info("-" * 54)
     logger.info("  종목별 요약")
-    logger.info("─" * 54)
+    logger.info("-" * 54)
     for r in results:
-        a = r["analysis"]
-        p = r["predictions"]
-        # [수정] PredictionResult 속성 접근 + ok() 로 성공 여부 판단
-        p12 = p.get("12m")
+        a   = r["analysis"]
+        p12 = r["predictions"].get("12m")
         pred_str = (
-            f"예측(12개월 후) ${p12.predicted_price:.2f} ({_fmt_pct(p12.predicted_return)})"
+            f"예측(12M) ${p12.predicted_price:.2f} ({_fmt_pct(p12.predicted_return)})"
             if p12 is not None and p12.ok()
-            else "12개월 후 예측 실패"
+            else "12개월 예측 실패"
         )
         logger.info(
             f"  {a['ticker']:<5}  현재가 ${a['current_price']:>8.2f}  "
@@ -108,20 +103,20 @@ def main():
         )
 
     if failed:
-        logger.warning(f"데이터 수집/분석 실패 종목: {', '.join(failed)}")
+        logger.warning(f"수집/분석 실패 종목: {', '.join(failed)}")
 
-    # ── 노션 리포트 저장 ──────────────────────────────────────
-    logger.info("─" * 54)
-    logger.info("노션 리포트 저장 중...")
+    # Notion 리포트 저장
+    logger.info("-" * 54)
+    logger.info("Notion 리포트 저장 중...")
     try:
         page_url = write_report_to_notion(results)
         logger.info(f"저장 완료: {page_url}")
     except Exception as e:
-        logger.error(f"노션 저장 실패: {e}")
+        logger.error(f"Notion 저장 실패: {e}")
         page_url = None
 
-    # ── 이메일 발송 (경량 알림) ───────────────────────────────
-    logger.info("─" * 54)
+    # 이메일 발송
+    logger.info("-" * 54)
     logger.info("이메일 발송 중...")
     try:
         send_portfolio_alert(results, page_url)

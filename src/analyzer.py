@@ -14,8 +14,8 @@ def _calculate_rsi(series, period=14):
     return 100 - (100 / (1 + rs))
 
 
-# [개선] NaN을 건너뛴 유효 종가 기준으로 과거 수익률 계산
 def _period_return(df_close, current_price, trading_days):
+    """NaN을 제외한 유효 종가 기준으로 과거 수익률을 계산한다."""
     valid = df_close.dropna()
     if len(valid) > trading_days:
         past_price = float(valid.iloc[-trading_days])
@@ -34,7 +34,7 @@ def analyze_ticker(ticker, df, ticker_info):
     """
     close = df["Close"]
 
-    # [개선] 마지막 유효한(non-NaN) 종가를 사용해 NaN 전파 방지
+    # 마지막 유효한(non-NaN) 종가를 사용해 NaN 전파를 방지한다
     valid_close = close.dropna()
     if valid_close.empty:
         raise ValueError(f"{ticker}: 유효한 종가 데이터가 없습니다.")
@@ -45,21 +45,27 @@ def analyze_ticker(ticker, df, ticker_info):
     high_52w = float(year_df["High"].max())
     low_52w = float(year_df["Low"].min())
 
-    # 52주 고가 대비 현재가 위치 (0~1)
-    price_vs_52w_high = (current_price - low_52w) / (high_52w - low_52w) if high_52w != low_52w else 0.5
+    # 52주 범위 내 현재가의 상대적 위치 (0 = 최저, 1 = 최고)
+    price_vs_52w_high = (
+        (current_price - low_52w) / (high_52w - low_52w)
+        if high_52w != low_52w else 0.5
+    )
 
     # YTD 수익률 (올해 첫 거래일 기준)
     current_year = df.index[-1].year
     ytd_data = df[df.index.year == current_year]
-    ytd_return = (current_price - float(ytd_data["Close"].iloc[0])) / float(ytd_data["Close"].iloc[0]) if len(ytd_data) > 0 else None
+    ytd_return = (
+        (current_price - float(ytd_data["Close"].iloc[0])) / float(ytd_data["Close"].iloc[0])
+        if len(ytd_data) > 0 else None
+    )
 
-    # 기간별 수익률
+    # 기간별 수익률 (거래일 기준)
     return_1m = _period_return(close, current_price, 21)
     return_3m = _period_return(close, current_price, 63)
     return_6m = _period_return(close, current_price, 126)
     return_1y = _period_return(close, current_price, 252)
 
-    # RSI (14일)
+    # RSI (14일) 및 신호 판단
     rsi = float(_calculate_rsi(close).iloc[-1])
     if rsi > 70:
         rsi_signal = "과매수"
@@ -68,9 +74,9 @@ def analyze_ticker(ticker, df, ticker_info):
     else:
         rsi_signal = "중립"
 
-    # 이동평균 (20일, 60일, 200일)
-    ma20 = float(close.rolling(20).mean().iloc[-1])
-    ma60 = float(close.rolling(60).mean().iloc[-1])
+    # 이동평균 (20일, 60일, 200일) 및 추세 신호
+    ma20  = float(close.rolling(20).mean().iloc[-1])
+    ma60  = float(close.rolling(60).mean().iloc[-1])
     ma200 = float(close.rolling(200).mean().iloc[-1])
 
     if current_price > ma20 and ma20 > ma60:
@@ -80,17 +86,17 @@ def analyze_ticker(ticker, df, ticker_info):
     else:
         ma_signal = "중립"
 
-    # 단기 모멘텀: 최근 20일 수익률 방향
+    # 단기 모멘텀 (최근 20거래일 수익률 방향)
     momentum_20d = return_1m if return_1m is not None else 0.0
 
-    # 변동성 (연율화, 최근 20거래일)
+    # 연율화 변동성 (최근 20거래일 기준)
     daily_vol = close.pct_change().tail(20).std()
     annualized_vol = float(daily_vol * np.sqrt(252)) if not np.isnan(daily_vol) else None
 
-    # 배당률 (yfinance info)
-    # [수정] fallback 키 순서로 배당률 수집 — SPYM처럼 dividendYield가 None인 종목 대응
-    # [수정] yfinance 버전에 따라 소수(0.0041) 또는 퍼센트(0.41) 형태로 반환되므로
-    #        1 초과 시 100으로 나눠 소수로 통일 (예: 42.0 → 0.42)
+    # 배당률 수집
+    # yfinance 버전에 따라 소수(0.0041) 또는 퍼센트(0.41) 형태로 반환될 수 있으므로
+    # 1 초과 시 100으로 나눠 소수 형태로 통일한다.
+    # dividendYield가 None인 종목(예: SPYM)을 위해 fallback 키를 순서대로 시도한다.
     div_yield = 0.0
     try:
         info = yf.Ticker(ticker).info

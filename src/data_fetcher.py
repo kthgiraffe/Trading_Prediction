@@ -11,29 +11,30 @@ _RETRY_DELAY = 5  # seconds
 
 def fetch_data(ticker, start_date, end_date):
     """
-    yfinance로 주어진 종목의 OHLCV 데이터를 수집한다.
+    yfinance Ticker.history()로 단일 종목의 OHLCV 데이터를 수집한다.
+
+    yf.download()는 병렬 호출 시 내부 캐시 공유로 인해 종목 간 데이터가
+    혼재될 수 있다. Ticker 인스턴스 단위로 호출하는 history()는 이 문제를
+    방지한다.
 
     Parameters
     ----------
     ticker     : 종목 티커 (예: 'SCHD')
     start_date : 시작일 'YYYY-MM-DD'
-    end_date   : 종료일 'YYYY-MM-DD'  (yfinance exclusive → 내일 날짜로 전달)
+    end_date   : 종료일 'YYYY-MM-DD'
 
     Returns
     -------
     pd.DataFrame | None
     """
-    # [수정] yfinance 캐시 갱신 워밍업 — 최신 종가가 캐시에 반영되도록 1d 히스토리를 먼저 호출
-    try:
-        yf.Ticker(ticker).history(period="1d")
-    except Exception:
-        pass
-
-    # [개선] 네트워크 불안정 대비 최대 3회 재시도
     for attempt in range(1, _MAX_RETRIES + 1):
         try:
-            data = yf.download(ticker, start=start_date, end=end_date,
-                               progress=False, auto_adjust=True)
+            ticker_obj = yf.Ticker(ticker)
+            data = ticker_obj.history(
+                start=start_date,
+                end=end_date,
+                auto_adjust=True,
+            )
         except Exception as e:
             if attempt < _MAX_RETRIES:
                 logger.warning(f"[{ticker}] {attempt}회차 재시도 중... ({e})")
@@ -50,12 +51,15 @@ def fetch_data(ticker, start_date, end_date):
     else:
         return None
 
-    # MultiIndex 컬럼 평탄화 (yfinance 버전에 따라 발생)
-    if isinstance(data.columns, pd.MultiIndex):
-        data.columns = data.columns.get_level_values(0)
+    # history()는 timezone-aware DatetimeIndex를 반환하므로 tz-naive로 변환
+    # Prophet 및 pandas 연산의 호환성을 위해 UTC 기준으로 정규화한다
+    if getattr(data.index, "tz", None) is not None:
+        data.index = data.index.tz_convert(None)
 
-    # Date가 컬럼으로 내려온 경우 인덱스로 복원
-    if "Date" in data.columns:
-        data.set_index("Date", inplace=True)
+    # 수집된 데이터의 마지막 날짜와 종가를 출력해 최신성을 즉시 확인할 수 있도록 한다
+    if "Close" in data.columns:
+        last_date = data.index[-1].strftime("%Y-%m-%d")
+        last_close = float(data["Close"].dropna().iloc[-1])
+        logger.info(f"[{ticker}] last date: {last_date} / close: ${last_close:.2f}")
 
     return data
