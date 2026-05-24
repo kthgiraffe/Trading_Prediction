@@ -94,17 +94,32 @@ def analyze_ticker(ticker, df, ticker_info):
     annualized_vol = float(daily_vol * np.sqrt(252)) if not np.isnan(daily_vol) else None
 
     # 배당률 수집
-    # yfinance 버전에 따라 소수(0.0041) 또는 퍼센트(0.41) 형태로 반환될 수 있으므로
-    # 1 초과 시 100으로 나눠 소수 형태로 통일한다.
-    # dividendYield가 None인 종목(예: SPYM)을 위해 fallback 키를 순서대로 시도한다.
+    # yfinance 키별 반환 형태가 다르다:
+    #   'yield'                     : 소수 형태  (0.0042 = 0.42%)  → 그대로 사용
+    #   'dividendYield'             : 퍼센트 형태 (0.42  = 0.42%)  → 100으로 나눔
+    #   'trailingAnnualDividendYield': 소수 형태이나 부정확한 경우가 많아 3순위
+    # 위 키가 모두 0/None 이면(예: SPYM), 실제 배당 이력에서 연간 합계를 계산한다.
     div_yield = 0.0
     try:
-        info = yf.Ticker(ticker).info
-        for key in ["dividendYield", "trailingAnnualDividendYield", "yield"]:
-            raw = float(info.get(key) or 0.0)
-            if raw > 0:
-                div_yield = raw / 100.0 if raw > 1.0 else raw
-                break
+        ticker_obj = yf.Ticker(ticker)
+        info = ticker_obj.info
+
+        raw_y = float(info.get("yield") or 0.0)
+        if raw_y > 0:
+            div_yield = raw_y                          # 이미 소수 형태
+        else:
+            raw_dy = float(info.get("dividendYield") or 0.0)
+            if raw_dy > 0:
+                div_yield = raw_dy / 100.0             # 퍼센트 형태 → 소수로 변환
+
+        # yield / dividendYield 모두 0이면 실제 배당 이력으로 계산
+        if div_yield == 0.0 and current_price > 0:
+            divs = ticker_obj.dividends
+            if not divs.empty:
+                cutoff = pd.Timestamp.now(tz=divs.index.tz) - pd.Timedelta(days=365)
+                annual_div = divs[divs.index >= cutoff].sum()
+                if annual_div > 0:
+                    div_yield = float(annual_div) / current_price
     except Exception:
         pass
 
