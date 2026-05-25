@@ -183,12 +183,12 @@ def get_payout_and_fcf(ticker: str) -> dict:
         if not result["is_reit"]:
             if pr is not None and pr > 0.85:
                 result["warning"] = f"Payout Ratio {pr:.0%} — 배당 지속 가능성 주의"
-            elif fcf_pr is not None and fcf_pr > 0.90:
-                result["warning"] = f"FCF 커버리지 {fcf_pr:.0%} — FCF 대비 배당 부담 높음"
+            elif fcf_pr is not None and fcf_pr > 1.0:
+                result["warning"] = f"FCF 커버리지 {fcf_pr:.0%} — FCF가 배당을 감당하지 못하는 상태"
         else:
             # 리츠는 FFO 기준으로 평가해야 하므로 EPS 기준 경고를 생략한다
             if fcf_pr is not None and fcf_pr > 1.2:
-                result["warning"] = "REIT: FCF 커버리지 낮음 — FFO 기준 별도 확인 권장"
+                result["warning"] = "REIT: 잉여현금흐름 대비 배당 지급 비율 높음, FFO 기준 별도 확인 권장"
 
     except Exception as e:
         logger.debug(f"[{ticker}] Payout/FCF 수집 실패: {e}")
